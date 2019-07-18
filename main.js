@@ -1,109 +1,139 @@
-const canvas = document.getElementById('canvas')
-const ctx = canvas.getContext('2d')
-const colorsFood = [
-  'FireBrick', 
-  'MediumVioletRed', 
-  'OrangeRed', 
-  'Violet', 
-  'Purple', 
-  'Indigo',
-  'Chocolate',
-  'Brown'
-]
-const step = 15
-canvas.width = 600
-canvas.height = 600
+let canvas
+let ctx
 
-let speedSnake = 0
-let game = true
+let timerId
 
-let snake = []
-let snakeLength = 0
+let game = {
+  step: 15,
+  speed: 300,
+  lastPressedkey: '',
+  snake: {
+    level: 5,
+    positionHead: {
+      x: -15,
+      y: 0
+    },
+    positionBody: [],
+    route: 'right'
+  },
+  food: {
+    position: {
+      x: 100,
+      y: 100
+    },
+    color: '',
+    colorsSet: [
+      'FireBrick', 
+      'MediumVioletRed', 
+      'OrangeRed', 
+      'Violet', 
+      'Purple', 
+      'Indigo',
+      'Chocolate',
+      'Brown'
+    ]
+  },
+  gameOn: true,
+  allowSetRoute: true 
+}
 
-let posHead = []
-
-let posFood = []
-let colorFood = ''
-
-let route = ''
-let allowSetRoute
-
-startNewGame ()
-
-window.setInterval(draw, speedSnake)
-
-document.addEventListener('keydown', setRoute)
+function init () {
+  canvas = document.getElementById('canvas')
+  ctx = canvas.getContext('2d')
+  document.addEventListener('keydown', setKey)
+    
+  canvas.width = 300
+  canvas.height = 300
+}
 
 function startNewGame () {
+  clearInterval(timerId)
   clearScreen()
-  speedSnake = 50
-  game = true
-  posHead = [step * (-1), 0]
-  snakeLength = 5
-  snake = []
-  route = 'right'
+  game.speed = 150
+  game.gameOn = true
+  game.snake.positionHead.x = game.step * (-1)
+  game.snake.positionHead.y = 0
+  game.snake.level = 5
+  game.snake.positionBody = []
+  game.lastPressedkey = 'right'
+  game.snake.route = 'right'
   setFood()
-  allowSetRoute = true
+  game.allowSetRoute = true
+  timerId = window.setInterval(draw, game.speed)
 }
 
 function draw () {
-  console.log(game)
   finishGame()
   clearScreen()
-  setSnake()
-  posHead = setRouteDrow(posHead, route)
+  setRoute()
+  moveHead()
+  checkGameOn()
   eatFood()
   drawBody()
   drawFood()
   drawHead()
-  game = !checkGameOver()
-  allowSetRoute = true
+  moveBody()
+  moveTail()
+  game.allowSetRoute = true
+  console.log(game.snake.positionHead)
+  console.log(...game.snake.positionBody)
 }
 
-function setRoute (event) {
-  if (allowSetRoute) {
-    if (event.key === 'ArrowDown' & route !== 'up' & route !== 'down') {
-      route = 'down'
-    }
-    if (event.key === 'ArrowUp' & route !== 'down' & route !== 'up') {
-      route = 'up'
-    }
-    if (event.key === 'ArrowLeft' & route !== 'right' & route !== 'left') {
-      route = 'left'
-    }
-    if (event.key === 'ArrowRight' & route !== 'left' & route !== 'right') {
-      route = 'right'
-    }
-    allowSetRoute = false
+function setKey (event) {
+  if (event.key === 'ArrowDown') {
+    game.lastPressedkey = 'down'
+  }
+  if (event.key === 'ArrowUp') {
+    game.lastPressedkey = 'up'
+  }
+  if (event.key === 'ArrowLeft') {
+    game.lastPressedkey = 'left'
+  }
+  if (event.key === 'ArrowRight') {
+    game.lastPressedkey = 'right'
   }
 }
 
-function setRouteDrow (position, routeMove) {
-  if (routeMove === 'right') {
-    position[0] += step
-    if (position[0] >= canvas.width) {
-      position[0] = 0
+function setRoute () {
+  if (game.lastPressedkey === 'down' & game.snake.route !== 'up' & game.snake.route !== 'down') {
+    game.snake.route = 'down'
+  }
+  if (game.lastPressedkey === 'up' & game.snake.route !== 'down' & game.snake.route !== 'up') {
+    game.snake.route = 'up'
+  }
+  if (game.lastPressedkey === 'left' & game.snake.route !== 'right' & game.snake.route !== 'left') {
+    game.snake.route = 'left'
+  }
+  if (game.lastPressedkey === 'right' & game.snake.route !== 'left' & game.snake.route !== 'right') {
+    game.snake.route = 'right'
+  }
+}
+
+function moveHead () {
+  if (game.snake.route === 'right') {
+    game.snake.positionHead.x += game.step
+    if (game.snake.positionHead.x >= canvas.width) {
+      game.snake.positionHead.x = 0
     }
   }
-  if (routeMove === 'left') {
-    position[0] -= step
-    if (position[0] < 0) {
-      position[0] = canvas.width - step
+  if (game.snake.route === 'left') {
+    game.snake.positionHead.x -= game.step
+    if (game.snake.positionHead.x < 0) {
+      game.snake.positionHead.x = canvas.width - game.step
     }
   }
-  if (routeMove === 'up') {
-    position[1] -= step
-    if (position[1] < 0) {
-      position[1] = canvas.height - step
+  if (game.snake.route === 'up') {
+    game.snake.positionHead.y -= game.step
+    if (game.snake.positionHead.y < 0) {
+      game.snake.positionHead.y = canvas.height - game.step
     }
   }
-  if (routeMove === 'down') {
-    position[1] += step
-    if (position[1] >= canvas.height) {
-      position[1] = 0
+  if (game.snake.route === 'down') {
+    game.snake.positionHead.y += game.step
+    if (game.snake.positionHead.y >= canvas.height) {
+      game.snake.positionHead.y = 0
     }
   }
-  return position
 }
 
 function randomInteger (min, max) {
@@ -113,79 +143,85 @@ function randomInteger (min, max) {
 }
 
 function setFood () {
-  let x = randomInteger(0, (canvas.width - step) / step) * step
-  let y = randomInteger(0, (canvas.height - step) / step) * step
-  if (snake.findIndex(checkSnake) === -1 & x !== posFood[0] & y !== posFood[1]) {
-    posFood[0] = x
-    posFood[1] = y
+  let posForFood = {
+    x: randomInteger(0, (canvas.width - game.step) / game.step) * game.step, 
+    y: randomInteger(0, (canvas.height - game.step) / game.step) * game.step
+  }
+  if (
+    game.snake.positionBody.findIndex(function (element) {
+      if (element.x === posForFood.x & element.y === posForFood.y) {
+        return true
+      }
+    }) === -1 &
+    posForFood.x !== game.food.position.x &
+    posForFood.y !== game.food.position.y
+    ) {
+    game.food.position.x = posForFood.x
+    game.food.position.y = posForFood.y
   } else {
-    x = canvas.width
-    y = canvas.height
-    setFood ()
+    setFood()
   }
-  function checkSnake (element) {
-    if (element[0] === x & element[1] === y) {
-      return true
-    }
-  }
-  colorFood = colorsFood[randomInteger(0, colorsFood.length - 1)]
+  game.food.color = game.food.colorsSet[randomInteger(0, game.food.colorsSet.length - 1)]
 }
 
 function checkFood () {
-  if (posHead[0] === posFood[0] & posHead[1] === posFood[1]) {
+  if (
+    game.snake.positionHead.x === game.food.position.x &
+    game.snake.positionHead.y === game.food.position.y
+    ) {
     return true
   }
 }
 
 function eatFood () {
   if (checkFood()) {
-    snakeLength++
+    game.snake.level++
     setFood()
   }
 }
 
-function checkGameOver () {
-  if (snake.find(checkSnake)) {
-    return true
+function checkGameOn () {
+  if (game.snake.positionBody.find(checkSnake)) {
+    game.gameOn = false
   }
 }
 
 function finishGame () {
-  if (!game) {
-    alert("Ваш езультат: " + snakeLength)
+  if (!game.gameOn) {
+    alert("Ваш езультат: " + game.snake.level)
     startNewGame()
   }
 }
 
 function checkSnake (element) {
-  if (element[0] === posHead[0] & element[1] === posHead[1]) {
+  if (element.x === game.snake.positionHead.x & element.y === game.snake.positionHead.y) {
     return true
   }
 }
 
-function setSnake () {
-  console.log('before', ...snake)
-  snake.push([posHead[0], posHead[1]])
-  while (snake.length >= snakeLength) {
-    snake.shift()
+function moveBody () {
+  game.snake.positionBody.push({x: game.snake.positionHead.x, y: game.snake.positionHead.y})
+}
+
+function moveTail () {
+  while (game.snake.positionBody.length >= game.snake.level) {
+    game.snake.positionBody.shift()
   }
-  console.log('after', ...snake)
-  //debugger
 }
 
 function drawHead () {
   ctx.beginPath()
-  ctx.fillStyle = !game ? 'red' : 'LightSkyBlue'
-  ctx.fillRect(posHead[0], posHead[1], step, step)
+  ctx.fillStyle = !game.gameOn ? 'red' : 'LightSkyBlue'
+  ctx.fillRect(game.snake.positionHead.x, game.snake.positionHead.y, game.step, game.step)
   ctx.closePath()
 }
 
 function drawBody () {
-  if (snake.length >= 1) {
-    for (let i = 0; i < snake.length; i++) {
+  if (game.snake.positionBody.length >= 1) {
+    for (let i = 0; i < game.snake.positionBody.length; i++) {
       ctx.beginPath()
       ctx.fillStyle = 'PeachPuff'
-      ctx.fillRect(snake[i][0], snake[i][1], step, step)
+      ctx.fillRect(game.snake.positionBody[i].x, game.snake.positionBody[i].y, game.step, game.step)
       ctx.closePath()
     }
   } 
@@ -193,8 +229,8 @@ function drawBody () {
 
 function drawFood () {
   ctx.beginPath()
-  ctx.fillStyle = colorFood
-  ctx.arc(posFood[0] + (step / 2), posFood[1] + (step / 2), step / 2, 0, Math.PI*2)
+  ctx.fillStyle = game.food.color
+  ctx.arc(game.food.position.x + (game.step / 2), game.food.position.y + (game.step / 2), game.step / 2, 0, Math.PI*2)
   ctx.closePath()
   ctx.fill()
 }
