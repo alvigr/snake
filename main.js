@@ -12,7 +12,7 @@ let dir = 1
 let game = {
   step: 20,
   speed: 200,
-  lastPressedkey: '',
+  nextRoute: '',
   snake: {
     level: 5,
     positionHead: {
@@ -45,7 +45,7 @@ let game = {
 function init () {
   canvas = document.getElementById('canvas')
   ctx = canvas.getContext('2d')
-  document.addEventListener('keydown', setKey)
+  document.addEventListener('keydown', setNextRoute)
   canvas.width = 300
   canvas.height = 300
 }
@@ -60,7 +60,7 @@ function startNewGame () {
   game.snake.positionHead.y = 0
   game.snake.level = 5
   game.snake.positionBody = []
-  game.lastPressedkey = 'right'
+  game.nextRoute = 'right'
   game.snake.route = 'right'
   setFood()
   timerId = window.setInterval(playGame, game.speed)
@@ -71,59 +71,48 @@ function startNewGame () {
 function playGame () {
   finishGame()
   setRoute()
-  moveHead()
-  checkPlay()
-  eatFood()
-  moveBody()
   moveTail()
+  moveHead()
+  eatFood()
+  checkPlay()
+  moveBody()
   console.log(game.snake.positionHead)
   console.log(...game.snake.positionBody)
 }
 
-function setKey (event) {
-  if (event.key === 'ArrowDown') {
-    game.lastPressedkey = 'down'
+function setNextRoute (event) {
+  if (
+      event.key === 'ArrowDown'
+      & game.snake.route !== 'up'
+      & game.snake.route !== 'down'
+    ) {
+    game.nextRoute = 'down'
   }
-  if (event.key === 'ArrowUp') {
-    game.lastPressedkey = 'up'
+  if (
+      event.key === 'ArrowUp'
+      & game.snake.route !== 'down'
+      & game.snake.route !== 'up'
+    ) {
+    game.nextRoute = 'up'
   }
-  if (event.key === 'ArrowLeft') {
-    game.lastPressedkey = 'left'
+  if (
+      event.key === 'ArrowLeft'
+      & game.snake.route !== 'right'
+      & game.snake.route !== 'left'
+      ) {
+    game.nextRoute = 'left'
   }
-  if (event.key === 'ArrowRight') {
-    game.lastPressedkey = 'right'
+  if (
+      event.key === 'ArrowRight'
+      & game.snake.route !== 'left'
+      & game.snake.route !== 'right'
+      ) {
+    game.nextRoute = 'right'
   }
 }
 
 function setRoute () {
-  if (
-    game.lastPressedkey === 'down'
-  & game.snake.route !== 'up'
-  & game.snake.route !== 'down'
-  ) {
-    game.snake.route = 'down'
-  }
-  if (
-    game.lastPressedkey === 'up'
-  & game.snake.route !== 'down'
-  & game.snake.route !== 'up'
-  ) {
-    game.snake.route = 'up'
-  }
-  if (
-    game.lastPressedkey === 'left'
-  & game.snake.route !== 'right'
-  & game.snake.route !== 'left'
-  ) {
-    game.snake.route = 'left'
-  }
-  if (
-    game.lastPressedkey === 'right'
-  & game.snake.route !== 'left'
-  & game.snake.route !== 'right'
-  ) {
-    game.snake.route = 'right'
-  }
+  game.snake.route = game.nextRoute  
 }
 
 function moveHead () {
