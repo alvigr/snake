@@ -3,9 +3,15 @@ let ctx
 
 let timerId
 
+// for animation:
+let animate
+let r
+let dir = 1
+//
+
 let game = {
-  step: 15,
-  speed: 300,
+  step: 20,
+  speed: 200,
   lastPressedkey: '',
   snake: {
     level: 5,
@@ -33,24 +39,23 @@ let game = {
       'Brown'
     ]
   },
-  gameOn: true,
-  allowSetRoute: true 
+  play: true,
 }
 
 function init () {
   canvas = document.getElementById('canvas')
   ctx = canvas.getContext('2d')
   document.addEventListener('keydown', setKey)
-    
   canvas.width = 300
   canvas.height = 300
 }
 
 function startNewGame () {
+  cancelAnimationFrame(animate)
   clearInterval(timerId)
   clearScreen()
-  game.speed = 150
-  game.gameOn = true
+  game.speed = 200
+  game.play = true
   game.snake.positionHead.x = game.step * (-1)
   game.snake.positionHead.y = 0
   game.snake.level = 5
@@ -58,23 +63,19 @@ function startNewGame () {
   game.lastPressedkey = 'right'
   game.snake.route = 'right'
   setFood()
-  game.allowSetRoute = true
-  timerId = window.setInterval(draw, game.speed)
+  timerId = window.setInterval(playGame, game.speed)
+  r = (game.step / 2) * 10
+  draw()
 }
 
-function draw () {
+function playGame () {
   finishGame()
-  clearScreen()
   setRoute()
   moveHead()
-  checkGameOn()
+  checkPlay()
   eatFood()
-  drawBody()
-  drawFood()
-  drawHead()
   moveBody()
   moveTail()
-  game.allowSetRoute = true
   console.log(game.snake.positionHead)
   console.log(...game.snake.positionBody)
 }
@@ -95,16 +96,32 @@ function setKey (event) {
 }
 
 function setRoute () {
-  if (game.lastPressedkey === 'down' & game.snake.route !== 'up' & game.snake.route !== 'down') {
+  if (
+    game.lastPressedkey === 'down'
+  & game.snake.route !== 'up'
+  & game.snake.route !== 'down'
+  ) {
     game.snake.route = 'down'
   }
-  if (game.lastPressedkey === 'up' & game.snake.route !== 'down' & game.snake.route !== 'up') {
+  if (
+    game.lastPressedkey === 'up'
+  & game.snake.route !== 'down'
+  & game.snake.route !== 'up'
+  ) {
     game.snake.route = 'up'
   }
-  if (game.lastPressedkey === 'left' & game.snake.route !== 'right' & game.snake.route !== 'left') {
+  if (
+    game.lastPressedkey === 'left'
+  & game.snake.route !== 'right'
+  & game.snake.route !== 'left'
+  ) {
     game.snake.route = 'left'
   }
-  if (game.lastPressedkey === 'right' & game.snake.route !== 'left' & game.snake.route !== 'right') {
+  if (
+    game.lastPressedkey === 'right'
+  & game.snake.route !== 'left'
+  & game.snake.route !== 'right'
+  ) {
     game.snake.route = 'right'
   }
 }
@@ -152,55 +169,57 @@ function setFood () {
       if (element.x === posForFood.x & element.y === posForFood.y) {
         return true
       }
-    }) === -1 &
-    posForFood.x !== game.food.position.x &
-    posForFood.y !== game.food.position.y
+    }) === -1
+    & posForFood.x !== game.food.position.x
+    & posForFood.y !== game.food.position.y
     ) {
     game.food.position.x = posForFood.x
     game.food.position.y = posForFood.y
   } else {
     setFood()
   }
-  game.food.color = game.food.colorsSet[randomInteger(0, game.food.colorsSet.length - 1)]
+  game.food.color = game.food.colorsSet[
+    randomInteger(0, game.food.colorsSet.length - 1)
+  ]
 }
 
-function checkFood () {
+function eatFood () {
   if (
     game.snake.positionHead.x === game.food.position.x &
     game.snake.positionHead.y === game.food.position.y
     ) {
-    return true
-  }
-}
-
-function eatFood () {
-  if (checkFood()) {
     game.snake.level++
     setFood()
   }
 }
 
-function checkGameOn () {
-  if (game.snake.positionBody.find(checkSnake)) {
-    game.gameOn = false
+function checkPlay () {
+  if (game.snake.positionBody.find(
+    function (element) {
+      if (
+        element.x === game.snake.positionHead.x
+        & element.y === game.snake.positionHead.y
+        ) {
+        return true
+      }
+    }
+  )) {
+    game.play = false
   }
 }
 
 function finishGame () {
-  if (!game.gameOn) {
-    alert("Ваш езультат: " + game.snake.level)
+  if (!game.play) {
+    alert("Ваш результат: " + game.snake.level)
     startNewGame()
   }
 }
 
-function checkSnake (element) {
-  if (element.x === game.snake.positionHead.x & element.y === game.snake.positionHead.y) {
-    return true
-  }
-}
-
 function moveBody () {
-  game.snake.positionBody.push({x: game.snake.positionHead.x, y: game.snake.positionHead.y})
+  game.snake.positionBody.push({
+    x: game.snake.positionHead.x, 
+    y: game.snake.positionHead.y
+  })
 }
 
 function moveTail () {
@@ -209,10 +228,23 @@ function moveTail () {
   }
 }
 
+function draw () {
+  clearScreen()
+  drawFood()
+  drawBody()
+  drawHead()
+  animate = requestAnimationFrame(draw)
+}
+
 function drawHead () {
   ctx.beginPath()
-  ctx.fillStyle = !game.gameOn ? 'red' : 'LightSkyBlue'
-  ctx.fillRect(game.snake.positionHead.x, game.snake.positionHead.y, game.step, game.step)
+  ctx.fillStyle = !game.play ? 'red' : 'LightSkyBlue'
+  ctx.fillRect(
+    game.snake.positionHead.x, 
+    game.snake.positionHead.y, 
+    game.step, 
+    game.step
+  )
   ctx.closePath()
 }
 
@@ -221,16 +253,29 @@ function drawBody () {
     for (let i = 0; i < game.snake.positionBody.length; i++) {
       ctx.beginPath()
       ctx.fillStyle = 'PeachPuff'
-      ctx.fillRect(game.snake.positionBody[i].x, game.snake.positionBody[i].y, game.step, game.step)
+      ctx.fillRect(
+        game.snake.positionBody[i].x, 
+        game.snake.positionBody[i].y, 
+        game.step, 
+        game.step
+      )
       ctx.closePath()
     }
   } 
 }
 
 function drawFood () {
+  r += dir
+  if (r === (game.step / 2) * 10 + 15 || r === (game.step / 2) * 10 - 30) dir *= -1
   ctx.beginPath()
   ctx.fillStyle = game.food.color
-  ctx.arc(game.food.position.x + (game.step / 2), game.food.position.y + (game.step / 2), game.step / 2, 0, Math.PI*2)
+  ctx.arc(
+    game.food.position.x + (game.step / 2), 
+    game.food.position.y + (game.step / 2), 
+    r / 10, 
+    0, 
+    Math.PI*2
+  )
   ctx.closePath()
   ctx.fill()
 }
