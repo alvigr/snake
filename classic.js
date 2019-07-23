@@ -3,10 +3,27 @@ let ctx
 
 let timerId
 
+const Routes = { 
+  UP: 'up', 
+  DOWN: 'down', 
+  RIGHT: 'right', 
+  LEFT: 'left'
+}
+const keyMap = { 
+  ArrowUp: Routes.UP, 
+  ArrowDown: Routes.DOWN, 
+  ArrowRight: Routes.RIGHT, 
+  ArrowLeft: Routes.LEFT
+}
+
 // for animation:
 let animate
 let r
 let dir = 1
+let x
+let y
+let dirHx
+let dirHy
 //
 
 let game = {
@@ -16,10 +33,13 @@ let game = {
   snake: {
     level: 5,
     positionHead: {
-      x: -15,
+      x: -20,
       y: 0
     },
-    positionBody: [],
+    positionBody: [{
+      x: -40,
+      y: 0
+    }],
     route: 'right'
   },
   food: {
@@ -59,7 +79,15 @@ function startNewGame () {
   game.snake.positionHead.x = game.step * (-1)
   game.snake.positionHead.y = 0
   game.snake.level = 5
-  game.snake.positionBody = []
+  game.snake.positionBody = [
+    {
+      x: game.step * (-3),
+      y: 0
+    },
+    {
+    x: game.step * (-2),
+    y: 0
+  }],
   game.nextRoute = 'right'
   game.snake.route = 'right'
   setFood()
@@ -81,34 +109,23 @@ function playGame () {
 }
 
 function setNextRoute (event) {
-  if (
-      event.key === 'ArrowDown'
-      & game.snake.route !== 'up'
-      & game.snake.route !== 'down'
-    ) {
-    game.nextRoute = 'down'
+  if ( ! (event.key in keyMap)) {
+    return
   }
-  if (
-      event.key === 'ArrowUp'
-      & game.snake.route !== 'down'
-      & game.snake.route !== 'up'
-    ) {
-    game.nextRoute = 'up'
+  let requestedRoute = keyMap[event.key]
+  if (requestedRoute === Routes.UP && game.snake.route === Routes.DOWN) {
+    return
   }
-  if (
-      event.key === 'ArrowLeft'
-      & game.snake.route !== 'right'
-      & game.snake.route !== 'left'
-      ) {
-    game.nextRoute = 'left'
+  if (requestedRoute === Routes.DOWN && game.snake.route === Routes.UP) {
+    return
   }
-  if (
-      event.key === 'ArrowRight'
-      & game.snake.route !== 'left'
-      & game.snake.route !== 'right'
-      ) {
-    game.nextRoute = 'right'
+  if (requestedRoute === Routes.RIGHT && game.snake.route === Routes.LEFT) {
+    return
   }
+  if (requestedRoute === Routes.LEFT && game.snake.route === Routes.RIGHT) {
+    return
+  }
+  game.nextRoute = requestedRoute
 }
 
 function setRoute () {
@@ -155,12 +172,12 @@ function setFood () {
   }
   if (
     game.snake.positionBody.findIndex(function (element) {
-      if (element.x === posForFood.x & element.y === posForFood.y) {
+      if (element.x === posForFood.x && element.y === posForFood.y) {
         return true
       }
     }) === -1
-    & posForFood.x !== game.food.position.x
-    & posForFood.y !== game.food.position.y
+    && posForFood.x !== game.food.position.x
+    && posForFood.y !== game.food.position.y
     ) {
     game.food.position.x = posForFood.x
     game.food.position.y = posForFood.y
@@ -187,7 +204,7 @@ function checkPlay () {
     function (element) {
       if (
         element.x === game.snake.positionHead.x
-        & element.y === game.snake.positionHead.y
+        && element.y === game.snake.positionHead.y
         ) {
         return true
       }
@@ -209,6 +226,8 @@ function moveBody () {
     x: game.snake.positionHead.x, 
     y: game.snake.positionHead.y
   })
+  x = game.snake.positionBody[game.snake.positionBody.length - 2].x
+  y = game.snake.positionBody[game.snake.positionBody.length - 2].y
 }
 
 function moveTail () {
@@ -226,6 +245,10 @@ function draw () {
 }
 
 function drawHead () {
+  dirHx = (game.snake.positionHead.x - game.snake.positionBody[game.snake.positionBody.length - 2].x) / game.step
+  dirHy = (game.snake.positionHead.y - game.snake.positionBody[game.snake.positionBody.length - 2].y) / game.step
+  x += (game.step / 12) * dirHx
+  y += (game.step / 12) * dirHy
   ctx.beginPath()
   ctx.fillStyle = !game.play ? 'red' : 'LightSkyBlue'
   ctx.fillRect(
@@ -235,6 +258,7 @@ function drawHead () {
     game.step
   )
   ctx.closePath()
+  console.log(game.snake.positionHead.x, game.snake.positionBody[game.snake.positionBody.length - 1].x)
 }
 
 function drawBody () {
