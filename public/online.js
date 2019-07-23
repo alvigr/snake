@@ -60,17 +60,34 @@ let game = {
     ]
   },
   play: true,
+  now: ''
 }
 
 const socket = io('http://localhost:3000')
 socket.on('connect', function() {
   console.log('Connected to server')
 })
-socket.on('event', function(data) {
-  console.log('Received event', data)
-})
+// socket.on('event', function(data) {
+//   console.log('Received event', data)
+// })
 socket.on('disconnect', function() {
   console.error('lost connection')
+})
+
+document.getElementById('pause').addEventListener('click', function () {
+  if (game.now === 'play') {
+    clearInterval(timerId)
+    document.getElementById('textOnpause').innerText = 'Resume'
+    game.now = 'pause'
+  } else if (game.now === 'pause') {
+    timerId = window.setInterval(playGame, game.speed)
+    document.getElementById('textOnpause').innerText = 'Pause'
+    game.now = 'play'
+  }
+})
+
+document.getElementById('newGame').addEventListener('click', function () {
+  startNewGame()
 })
 
 function init () {
@@ -79,6 +96,8 @@ function init () {
   document.addEventListener('keydown', setNextRoute)
   canvas.width = 300
   canvas.height = 300
+  let img = document.getElementById('snake')
+  ctx.drawImage(img, -100, 0)
 }
 
 function startNewGame () {
@@ -103,6 +122,7 @@ function startNewGame () {
   game.snake.route = 'right'
   setFood()
   timerId = window.setInterval(playGame, game.speed)
+  game.now = 'play'
   r = (game.step / 2) * 10
   draw()
 }
@@ -117,6 +137,7 @@ function playGame () {
   moveBody()
   // console.log(game.snake.positionHead)
   // console.log(...game.snake.positionBody)
+  document.getElementById('level').innerText = game.snake.level
   socket.emit('game', game)
 }
 
@@ -137,7 +158,7 @@ function setNextRoute (event) {
   if (requestedRoute === Routes.LEFT && game.snake.route === Routes.RIGHT) {
     return
   }
-  game.nextRoute = requestedRoute
+  if (game.now === 'play') game.nextRoute = requestedRoute
 }
 
 function setRoute () {

@@ -7,11 +7,16 @@
 </head>
 <body>
   <h1>Online</h1>
-<canvas id="canvas" style="border: 1px solid;"></canvas>
-<script src="./online.js"></script>
-<script>
-    init();
-    startNewGame ();
-</script>
+  <div style="display: none">
+      <img id="snake" src="snake.jpg" width="300" height="300">
+  </div>
+  <canvas id="canvas" style="border: 1px solid;"></canvas>
+  <p>Level: <span id="level">5</span></p>
+  <button id="newGame">New game</button>
+  <button id="pause"><span id="textOnpause">Pause</span></button>
+  <script src="./online.js"></script>
+  <script>
+      init();
+  </script>
 </body>
 </html>

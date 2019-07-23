@@ -7,16 +7,10 @@
 <body>
 <h1>Stream</h1>
 <script src="/socket.io/socket.io.js"></script>
+<canvas id="canvas" style="border: 1px solid;"></canvas>
+<script src="./stream.js"></script>
 <script>
-  var socket = io('http://localhost:3000');
-  socket.on('connect', function(){
-  });
-  socket.on('stream', function(data){
-    console.log('Received stream', data)
-  });
-  socket.on('disconnect', function(){
-    console.error('lost connection')
-  });
+  init();
 </script>
 </body>
 </html>
