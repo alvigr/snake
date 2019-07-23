@@ -62,6 +62,17 @@ let game = {
   play: true,
 }
 
+const socket = io('http://localhost:3000')
+socket.on('connect', function() {
+  console.log('Connected to server')
+})
+socket.on('event', function(data) {
+  console.log('Received event', data)
+})
+socket.on('disconnect', function() {
+  console.error('lost connection')
+})
+
 function init () {
   canvas = document.getElementById('canvas')
   ctx = canvas.getContext('2d')
@@ -106,6 +117,7 @@ function playGame () {
   moveBody()
   // console.log(game.snake.positionHead)
   // console.log(...game.snake.positionBody)
+  socket.emit('game', game)
 }
 
 function setNextRoute (event) {

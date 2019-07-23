@@ -11,10 +11,12 @@
   var socket = io('http://localhost:3000');
   socket.on('connect', function(){
   });
-  socket.on('event', function(data){
-    console.log('Received event', data)
+  socket.on('stream', function(data){
+    console.log('Received stream', data)
   });
-  socket.on('disconnect', function(){});
+  socket.on('disconnect', function(){
+    console.error('lost connection')
+  });
 </script>
 </body>
 </html>

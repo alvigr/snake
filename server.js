@@ -18,10 +18,10 @@ app.get('/stream', (req, res) => {
 
 io.on('connection', client => {
   console.log('a user connected');
-  let snakeLevel = 0
-  setInterval(() => {
-    client.emit('event', { snakeLevel: snakeLevel++ })
-  }, 2000)
+  client.on('game', data => {
+    console.log('game')
+    io.emit('stream', data)
+   });
   // client.on('event', data => { 
   //   console.log('event', data)
   //  });
