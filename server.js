@@ -2,6 +2,14 @@ const express = require('express')
 const app = express();
 const server = require('http').createServer(app);
 const io = require('socket.io')(server);
+const snake = require('./snake')
+
+
+snake.on('game', (game) => {
+  //console.log(game.status, game.snake.positionHead)
+})
+
+snake.newGame()
 
 app.use(express.static('public'));
 
@@ -15,13 +23,30 @@ app.get('/stream', (req, res) => {
   res.sendFile(__dirname + '/stream.html');
 });
 
+function onChangeGame (game) {
+  // console.log('game')
+  io.emit('stream', game)
+}
+snake.on('game', onChangeGame)
 
 io.on('connection', client => {
   console.log('a user connected');
-  client.on('game', data => {
-    console.log('game')
-    io.emit('stream', data)
-   });
+  client.on('startNewGame', () => {
+    console.log('Start new game to client')
+    snake.newGame()
+  })
+  client.on('setRoute', newRoute => {
+    console.log('New route')
+    snake.setNextRoute(newRoute)
+  })
+  client.on('paused', () => {
+    snake.pauseOrResume()
+    console.log('Game paused to client')
+  })
+  client.on('resumed', () => {
+    snake.pauseOrResume()
+    console.log('Game resumed to client')
+  })
   // client.on('event', data => { 
   //   console.log('event', data)
   //  });

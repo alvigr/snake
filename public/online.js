@@ -48,17 +48,17 @@ let game = {
       y: 100
     },
     color: '',
-    colorsSet: [
-      'FireBrick', 
-      'MediumVioletRed', 
-      'OrangeRed', 
-      'Violet', 
-      'Purple', 
-      'Indigo',
-      'Chocolate',
-      'Brown'
-    ]
   },
+  colorsSet: [
+    'FireBrick', 
+    'MediumVioletRed', 
+    'OrangeRed', 
+    'Violet', 
+    'Purple', 
+    'Indigo',
+    'Chocolate',
+    'Brown'
+  ],
   play: true,
   now: ''
 }
@@ -70,25 +70,31 @@ socket.on('connect', function() {
 // socket.on('event', function(data) {
 //   console.log('Received event', data)
 // })
-socket.on('disconnect', function() {
+socket.on('disconnect', function () {
   console.error('lost connection')
 })
 
-document.getElementById('pause').addEventListener('click', function () {
+document.getElementById('pause').addEventListener('click', pause)
+
+document.getElementById('newGame').addEventListener('click', newGame)
+
+function pause () {
   if (game.now === 'play') {
     clearInterval(timerId)
     document.getElementById('textOnpause').innerText = 'Resume'
     game.now = 'pause'
+    socket.emit('paused')
   } else if (game.now === 'pause') {
     timerId = window.setInterval(playGame, game.speed)
     document.getElementById('textOnpause').innerText = 'Pause'
     game.now = 'play'
+    socket.emit('resumed')
   }
-})
+}
 
-document.getElementById('newGame').addEventListener('click', function () {
+function newGame () {
   startNewGame()
-})
+}
 
 function init () {
   canvas = document.getElementById('canvas')
@@ -125,6 +131,7 @@ function startNewGame () {
   game.now = 'play'
   r = (game.step / 2) * 10
   draw()
+  socket.emit('startNewGame')
 }
 
 function playGame () {
@@ -137,8 +144,8 @@ function playGame () {
   moveBody()
   // console.log(game.snake.positionHead)
   // console.log(...game.snake.positionBody)
-  document.getElementById('level').innerText = game.snake.level
-  socket.emit('game', game)
+  document.getElementById('score').innerText = game.snake.level
+  //socket.emit('game', game)
 }
 
 function setNextRoute (event) {
@@ -162,7 +169,10 @@ function setNextRoute (event) {
 }
 
 function setRoute () {
-  game.snake.route = game.nextRoute  
+  if (game.snake.route !== game.nextRoute) {
+    game.snake.route = game.nextRoute
+    socket.emit('setRoute', game.snake.route)
+  }
 }
 
 function moveHead () {
@@ -217,8 +227,8 @@ function setFood () {
   } else {
     setFood()
   }
-  game.food.color = game.food.colorsSet[
-    randomInteger(0, game.food.colorsSet.length - 1)
+  game.food.color = game.colorsSet[
+    randomInteger(0, game.colorsSet.length - 1)
   ]
 }
 

@@ -55,7 +55,7 @@ function drawHead () {
   x += (game.step / 12) * dirHx
   y += (game.step / 12) * dirHy
   ctx.beginPath()
-  ctx.fillStyle = !game.play ? 'red' : 'LightSkyBlue'
+  ctx.fillStyle = game.status === 'finished' ? 'red' : 'LightSkyBlue'
   ctx.fillRect(
     game.snake.positionHead.x, 
     game.snake.positionHead.y, 
