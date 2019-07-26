@@ -26,46 +26,15 @@ let dirHx
 let dirHy
 //
 
-let game = {
-  step: 20,
-  speed: 200,
-  nextRoute: '',
-  snake: {
-    level: 5,
-    positionHead: {
-      x: -20,
-      y: 0
-    },
-    positionBody: [{
-      x: -40,
-      y: 0
-    }],
-    route: 'right'
-  },
-  food: {
-    position: {
-      x: 100,
-      y: 100
-    },
-    color: '',
-  },
-  colorsSet: [
-    'FireBrick', 
-    'MediumVioletRed', 
-    'OrangeRed', 
-    'Violet', 
-    'Purple', 
-    'Indigo',
-    'Chocolate',
-    'Brown'
-  ],
-  play: true,
-  now: ''
-}
+let game
 
 const socket = io('http://localhost:3000')
 socket.on('connect', function() {
   console.log('Connected to server')
+})
+socket.on('stream', function (data) {
+  game = data
+  document.getElementById('score').innerText = game.snake.level
 })
 // socket.on('event', function(data) {
 //   console.log('Received event', data)
@@ -79,20 +48,19 @@ document.getElementById('pause').addEventListener('click', pause)
 document.getElementById('newGame').addEventListener('click', newGame)
 
 function pause () {
-  if (game.now === 'play') {
+  if (game.status === 'playing') {
     clearInterval(timerId)
     document.getElementById('textOnpause').innerText = 'Resume'
-    game.now = 'pause'
     socket.emit('paused')
-  } else if (game.now === 'pause') {
+  } else if (game.status === 'paused') {
     timerId = window.setInterval(playGame, game.speed)
     document.getElementById('textOnpause').innerText = 'Pause'
-    game.now = 'play'
     socket.emit('resumed')
   }
 }
 
 function newGame () {
+  socket.emit('startNewGame')
   startNewGame()
 }
 
@@ -108,43 +76,14 @@ function init () {
 
 function startNewGame () {
   cancelAnimationFrame(animate)
-  clearInterval(timerId)
-  clearScreen()
-  game.speed = 200
-  game.play = true
-  game.snake.positionHead.x = game.step * (-1)
-  game.snake.positionHead.y = 0
-  game.snake.level = 5
-  game.snake.positionBody = [
-    {
-      x: game.step * (-3),
-      y: 0
-    },
-    {
-    x: game.step * (-2),
-    y: 0
-  }],
-  game.nextRoute = 'right'
-  game.snake.route = 'right'
-  setFood()
-  timerId = window.setInterval(playGame, game.speed)
-  game.now = 'play'
   r = (game.step / 2) * 10
   draw()
-  socket.emit('startNewGame')
 }
 
 function playGame () {
-  finishGame()
-  setRoute()
-  moveTail()
-  moveHead()
-  eatFood()
-  checkPlay()
-  moveBody()
   // console.log(game.snake.positionHead)
   // console.log(...game.snake.positionBody)
-  document.getElementById('score').innerText = game.snake.level
+  
   //socket.emit('game', game)
 }
 
@@ -165,118 +104,7 @@ function setNextRoute (event) {
   if (requestedRoute === Routes.LEFT && game.snake.route === Routes.RIGHT) {
     return
   }
-  if (game.now === 'play') game.nextRoute = requestedRoute
-}
-
-function setRoute () {
-  if (game.snake.route !== game.nextRoute) {
-    game.snake.route = game.nextRoute
-    socket.emit('setRoute', game.snake.route)
-  }
-}
-
-function moveHead () {
-  if (game.snake.route === 'right') {
-    game.snake.positionHead.x += game.step
-    if (game.snake.positionHead.x >= canvas.width) {
-      game.snake.positionHead.x = 0
-    }
-  }
-  if (game.snake.route === 'left') {
-    game.snake.positionHead.x -= game.step
-    if (game.snake.positionHead.x < 0) {
-      game.snake.positionHead.x = canvas.width - game.step
-    }
-  }
-  if (game.snake.route === 'up') {
-    game.snake.positionHead.y -= game.step
-    if (game.snake.positionHead.y < 0) {
-      game.snake.positionHead.y = canvas.height - game.step
-    }
-  }
-  if (game.snake.route === 'down') {
-    game.snake.positionHead.y += game.step
-    if (game.snake.positionHead.y >= canvas.height) {
-      game.snake.positionHead.y = 0
-    }
-  }
-}
-
-function randomInteger (min, max) {
-  let rand = min + Math.random() * (max + 1 - min);
-  rand = Math.floor(rand);
-  return rand;
-}
-
-function setFood () {
-  let posForFood = {
-    x: randomInteger(0, (canvas.width - game.step) / game.step) * game.step, 
-    y: randomInteger(0, (canvas.height - game.step) / game.step) * game.step
-  }
-  if (
-    game.snake.positionBody.findIndex(function (element) {
-      if (element.x === posForFood.x && element.y === posForFood.y) {
-        return true
-      }
-    }) === -1
-    && posForFood.x !== game.food.position.x
-    && posForFood.y !== game.food.position.y
-    ) {
-    game.food.position.x = posForFood.x
-    game.food.position.y = posForFood.y
-  } else {
-    setFood()
-  }
-  game.food.color = game.colorsSet[
-    randomInteger(0, game.colorsSet.length - 1)
-  ]
-}
-
-function eatFood () {
-  if (
-    game.snake.positionHead.x === game.food.position.x &
-    game.snake.positionHead.y === game.food.position.y
-    ) {
-    game.snake.level++
-    setFood()
-  }
-}
-
-function checkPlay () {
-  if (game.snake.positionBody.find(
-    function (element) {
-      if (
-        element.x === game.snake.positionHead.x
-        && element.y === game.snake.positionHead.y
-        ) {
-        return true
-      }
-    }
-  )) {
-    game.play = false
-  }
-}
-
-function finishGame () {
-  if (!game.play) {
-    alert("Ваш результат: " + game.snake.level)
-    startNewGame()
-  }
-}
-
-function moveBody () {
-  game.snake.positionBody.push({
-    x: game.snake.positionHead.x, 
-    y: game.snake.positionHead.y
-  })
-  x = game.snake.positionBody[game.snake.positionBody.length - 2].x
-  y = game.snake.positionBody[game.snake.positionBody.length - 2].y
-}
-
-function moveTail () {
-  while (game.snake.positionBody.length >= game.snake.level) {
-    game.snake.positionBody.shift()
-  }
+  if (game.status === 'playing') socket.emit('setRoute', requestedRoute)
 }
 
 function draw () {
@@ -293,7 +121,7 @@ function drawHead () {
   x += (game.step / 12) * dirHx
   y += (game.step / 12) * dirHy
   ctx.beginPath()
-  ctx.fillStyle = !game.play ? 'red' : 'LightSkyBlue'
+  ctx.fillStyle = game.status === 'finished' ? 'red' : 'LightSkyBlue'
   ctx.fillRect(
     game.snake.positionHead.x, 
     game.snake.positionHead.y, 

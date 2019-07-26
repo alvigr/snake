@@ -9,8 +9,6 @@ snake.on('game', (game) => {
   //console.log(game.status, game.snake.positionHead)
 })
 
-snake.newGame()
-
 app.use(express.static('public'));
 
 app.get('/', (req, res) => {
@@ -34,6 +32,7 @@ io.on('connection', client => {
   client.on('startNewGame', () => {
     console.log('Start new game to client')
     snake.newGame()
+    io.emit('stream', snake.getState())
   })
   client.on('setRoute', newRoute => {
     console.log('New route')
