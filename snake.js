@@ -93,9 +93,7 @@ function newGame () {
   startNewGame()
 }
 
-function startNewGame () {
-  console.log('Start new game')
-  clearInterval(timerId)
+function setDefaultParams () {
   game.speed = 200
   game.snake.positionHead.x = stepGame * (-1)
   game.snake.positionHead.y = 0
@@ -111,6 +109,12 @@ function startNewGame () {
   }],
   game.nextRoute = 'right'
   game.snake.route = 'right'
+}
+
+function startNewGame () {
+  console.log('Start new game')
+  clearInterval(timerId)
+  setDefaultParams()
   setFood()
   timerId = setInterval(playGame, game.speed)
   changeStatus(Statuses.PLAYING)
@@ -120,21 +124,7 @@ function startNewGame () {
 function resetGame () {
   console.log('Reset game')
   clearInterval(timerId)
-  game.speed = 200
-  game.snake.positionHead.x = stepGame * (-1)
-  game.snake.positionHead.y = 0
-  game.snake.level = 5
-  game.snake.positionBody = [
-    {
-      x: stepGame * (-3),
-      y: 0
-    },
-    {
-    x: stepGame * (-2),
-    y: 0
-  }],
-  game.nextRoute = 'right'
-  game.snake.route = 'right'
+  setDefaultParams()
   changeStatus(Statuses.WAIT)
 }
 
@@ -277,6 +267,7 @@ function moveTail () {
 }
 
 module.exports = {
+  setDefaultParams,
   resetGame,
   newGame,
   getState,

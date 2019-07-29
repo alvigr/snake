@@ -31,6 +31,7 @@ snake.on('game', onChangeGame)
 io.on('connection', client => {
   console.log('a user connected');
   client.on('wait', () => {
+    snake.setDefaultParams()
     io.emit('stream', {data: snake.getState(), step: snake.stepGame})
   })
   client.on('startNewGame', () => {
