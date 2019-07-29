@@ -22,17 +22,20 @@ app.get('/stream', (req, res) => {
 });
 
 function onChangeGame (game) {
-  // console.log('game')
+  //console.log('game')
   io.emit('stream', game)
 }
+
 snake.on('game', onChangeGame)
 
 io.on('connection', client => {
   console.log('a user connected');
+  client.on('wait', () => {
+    io.emit('stream', {data: snake.getState(), step: snake.stepGame})
+  })
   client.on('startNewGame', () => {
     console.log('Start new game to client')
     snake.newGame()
-    io.emit('stream', snake.getState())
   })
   client.on('setRoute', newRoute => {
     console.log('New route')
@@ -51,6 +54,7 @@ io.on('connection', client => {
   //  });
   client.on('disconnect', () => { 
     console.log('user closed connection')
+    snake.resetGame()
    });
 });
 

@@ -1,4 +1,5 @@
 const EventEmitter = require('events')
+const stepGame = 20
 
 let timerId
 
@@ -18,17 +19,21 @@ const Statuses = {
 
 let game = {
   status: Statuses.WAIT,
-  step: 20,
   speed: 200,
   nextRoute: '',
   snake: {
     level: 5,
     positionHead: {
-      x: -20,
+      x: stepGame * (-1),
       y: 0
     },
-    positionBody: [{
-      x: -40,
+    positionBody: [
+      {
+        x: stepGame * (-3),
+        y: 0
+      },
+      {
+      x: stepGame * (-2),
       y: 0
     }],
     route: 'right'
@@ -92,16 +97,16 @@ function startNewGame () {
   console.log('Start new game')
   clearInterval(timerId)
   game.speed = 200
-  game.snake.positionHead.x = game.step * (-1)
+  game.snake.positionHead.x = stepGame * (-1)
   game.snake.positionHead.y = 0
   game.snake.level = 5
   game.snake.positionBody = [
     {
-      x: game.step * (-3),
+      x: stepGame * (-3),
       y: 0
     },
     {
-    x: game.step * (-2),
+    x: stepGame * (-2),
     y: 0
   }],
   game.nextRoute = 'right'
@@ -109,20 +114,40 @@ function startNewGame () {
   setFood()
   timerId = setInterval(playGame, game.speed)
   changeStatus(Statuses.PLAYING)
+  emitter.emit('game', {data: game, step: stepGame})
+}
+
+function resetGame () {
+  console.log('Reset game')
+  clearInterval(timerId)
+  game.speed = 200
+  game.snake.positionHead.x = stepGame * (-1)
+  game.snake.positionHead.y = 0
+  game.snake.level = 5
+  game.snake.positionBody = [
+    {
+      x: stepGame * (-3),
+      y: 0
+    },
+    {
+    x: stepGame * (-2),
+    y: 0
+  }],
+  game.nextRoute = 'right'
+  game.snake.route = 'right'
+  changeStatus(Statuses.WAIT)
 }
 
 function playGame () {
-  finishGame()
-  setRoute()
-  moveTail()
-  moveHead()
-  eatFood()
-  checkPlay()
-  moveBody()
-  // console.log(game.snake.positionHead)
-  // console.log(...game.snake.positionBody)
-
-  emitter.emit('game', game)
+  if (finishGame()) {
+    setRoute()
+    moveTail()
+    moveHead()
+    eatFood()
+    checkPlay()
+    moveBody()
+  }
+  emitter.emit('game', {data: game, step: stepGame})
 }
 
 function setNextRoute (requestedRoute) {
@@ -147,25 +172,25 @@ function setRoute () {
 
 function moveHead () {
   if (game.snake.route === 'right') {
-    game.snake.positionHead.x += game.step
+    game.snake.positionHead.x += stepGame
     if (game.snake.positionHead.x >= game.width) {
       game.snake.positionHead.x = 0
     }
   }
   if (game.snake.route === 'left') {
-    game.snake.positionHead.x -= game.step
+    game.snake.positionHead.x -= stepGame
     if (game.snake.positionHead.x < 0) {
-      game.snake.positionHead.x = game.width - game.step
+      game.snake.positionHead.x = game.width - stepGame
     }
   }
   if (game.snake.route === 'up') {
-    game.snake.positionHead.y -= game.step
+    game.snake.positionHead.y -= stepGame
     if (game.snake.positionHead.y < 0) {
-      game.snake.positionHead.y = game.height - game.step
+      game.snake.positionHead.y = game.height - stepGame
     }
   }
   if (game.snake.route === 'down') {
-    game.snake.positionHead.y += game.step
+    game.snake.positionHead.y += stepGame
     if (game.snake.positionHead.y >= game.height) {
       game.snake.positionHead.y = 0
     }
@@ -180,8 +205,8 @@ function randomInteger (min, max) {
 
 function setFood () {
   let posForFood = {
-    x: randomInteger(0, (game.width - game.step) / game.step) * game.step, 
-    y: randomInteger(0, (game.height - game.step) / game.step) * game.step
+    x: randomInteger(0, (game.width - stepGame) / stepGame) * stepGame, 
+    y: randomInteger(0, (game.height - stepGame) / stepGame) * stepGame
   }
   if (
     game.snake.positionBody.findIndex(function (element) {
@@ -230,6 +255,9 @@ function checkPlay () {
 function finishGame () {
   if (game.status === Statuses.FINISHED) {
     clearInterval(timerId)
+    return false
+  } else {
+    return true
   }
 }
 
@@ -249,8 +277,10 @@ function moveTail () {
 }
 
 module.exports = {
+  resetGame,
   newGame,
   getState,
+  stepGame,
   pauseOrResume,
   setNextRoute,
   on,

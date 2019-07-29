@@ -27,25 +27,25 @@ let dirHy
 //
 
 let game
+let stepGame
 
 const socket = io('http://localhost:3000')
+
 socket.on('connect', function() {
   console.log('Connected to server')
 })
+
 socket.on('stream', function (data) {
-  game = data
+  console.log('Game получен')
+  game = data.data
+  stepGame = data.step
   document.getElementById('score').innerText = game.snake.level
 })
-// socket.on('event', function(data) {
-//   console.log('Received event', data)
-// })
+
 socket.on('disconnect', function () {
   console.error('lost connection')
 })
 
-document.getElementById('pause').addEventListener('click', pause)
-
-document.getElementById('newGame').addEventListener('click', newGame)
 
 function pause () {
   if (game.status === 'playing') {
@@ -61,6 +61,8 @@ function pause () {
 
 function newGame () {
   socket.emit('startNewGame')
+  document.getElementById('img').style.display="none"
+  document.getElementById('canvas').style.display="block"
   startNewGame()
 }
 
@@ -68,15 +70,17 @@ function init () {
   canvas = document.getElementById('canvas')
   ctx = canvas.getContext('2d')
   document.addEventListener('keydown', setNextRoute)
-  canvas.width = 300
-  canvas.height = 300
-  let img = document.getElementById('snake')
-  ctx.drawImage(img, -100, 0)
+  document.getElementById('pause').addEventListener('click', pause)
+  document.getElementById('newGame').addEventListener('click', newGame)
+  socket.emit('wait')
 }
 
 function startNewGame () {
   cancelAnimationFrame(animate)
-  r = (game.step / 2) * 10
+  clearScreen()
+  canvas.width = game.width
+  canvas.height = game.height
+  r = (stepGame / 2) * 10
   draw()
 }
 
@@ -125,8 +129,8 @@ function drawHead () {
   ctx.fillRect(
     game.snake.positionHead.x, 
     game.snake.positionHead.y, 
-    game.step, 
-    game.step
+    stepGame, 
+    stepGame
   )
   ctx.closePath()
   // console.log(game.snake.positionHead.x, game.snake.positionBody[game.snake.positionBody.length - 1].x)
@@ -140,8 +144,8 @@ function drawBody () {
       ctx.fillRect(
         game.snake.positionBody[i].x, 
         game.snake.positionBody[i].y, 
-        game.step, 
-        game.step
+        stepGame, 
+        stepGame
       )
       ctx.closePath()
     }
@@ -150,12 +154,12 @@ function drawBody () {
 
 function drawFood () {
   r += dir
-  if (r === (game.step / 2) * 10 + 15 || r === (game.step / 2) * 10 - 30) dir *= -1
+  if (r === (stepGame / 2) * 10 + 15 || r === (stepGame / 2) * 10 - 30) dir *= -1
   ctx.beginPath()
   ctx.fillStyle = game.food.color
   ctx.arc(
-    game.food.position.x + (game.step / 2), 
-    game.food.position.y + (game.step / 2), 
+    game.food.position.x + (stepGame / 2), 
+    game.food.position.y + (stepGame / 2), 
     r / 10, 
     0, 
     Math.PI*2
