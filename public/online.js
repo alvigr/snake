@@ -36,10 +36,11 @@ socket.on('connect', function() {
 })
 
 socket.on('stream', function (data) {
-  console.log('Game получен')
   game = data.data
   stepGame = data.step
+  console.log('Game получен', game.status)
   document.getElementById('score').innerText = game.snake.level
+  document.getElementById('textOnPause').innerText = game.status === 'paused' ? 'Resume' : 'Pause'
 })
 
 socket.on('disconnect', function () {
@@ -49,20 +50,16 @@ socket.on('disconnect', function () {
 
 function pause () {
   if (game.status === 'playing') {
-    clearInterval(timerId)
-    document.getElementById('textOnpause').innerText = 'Resume'
     socket.emit('paused')
   } else if (game.status === 'paused') {
-    timerId = window.setInterval(playGame, game.speed)
-    document.getElementById('textOnpause').innerText = 'Pause'
     socket.emit('resumed')
   }
 }
 
 function newGame () {
   socket.emit('startNewGame')
-  document.getElementById('img').style.display="none"
-  document.getElementById('canvas').style.display="block"
+  document.getElementById('body-game').style.display="none"
+  document.getElementById('gameplay').style.display="block"
   startNewGame()
 }
 
@@ -72,7 +69,16 @@ function init () {
   document.addEventListener('keydown', setNextRoute)
   document.getElementById('pause').addEventListener('click', pause)
   document.getElementById('newGame').addEventListener('click', newGame)
+  document.getElementById('restart').addEventListener('click', newGame)
+  document.getElementById('exit').addEventListener('click', exit)
   socket.emit('wait')
+}
+
+function exit () {
+  console.log('exit')
+  socket.emit('wait')
+  document.getElementById('body-game').style.display=""
+  document.getElementById('gameplay').style.display="none"
 }
 
 function startNewGame () {
@@ -125,7 +131,7 @@ function drawHead () {
   x += (game.step / 12) * dirHx
   y += (game.step / 12) * dirHy
   ctx.beginPath()
-  ctx.fillStyle = game.status === 'finished' ? 'red' : 'LightSkyBlue'
+  ctx.fillStyle = game.status === 'finished' ? '#D73333' : '#366A5D'
   ctx.fillRect(
     game.snake.positionHead.x, 
     game.snake.positionHead.y, 
@@ -140,7 +146,7 @@ function drawBody () {
   if (game.snake.positionBody.length >= 1) {
     for (let i = 0; i < game.snake.positionBody.length; i++) {
       ctx.beginPath()
-      ctx.fillStyle = 'PeachPuff'
+      ctx.fillStyle = '#63A794'
       ctx.fillRect(
         game.snake.positionBody[i].x, 
         game.snake.positionBody[i].y, 

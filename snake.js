@@ -46,16 +46,15 @@ let game = {
     color: '',
   },
   colorsSet: [
-    'FireBrick', 
-    'MediumVioletRed', 
-    'OrangeRed', 
-    'Violet', 
-    'Purple', 
-    'Indigo',
-    'Chocolate',
-    'Brown'
+    '#EB5757', 
+    '#9B51E0', 
+    '#2F80ED', 
+    '#F2C94C', 
+    '#F2994A',
+    '#56CCF2',
+    '#D96BBA'
   ],
-  width: 300,
+  width: 500,
   height: 300
 }
 

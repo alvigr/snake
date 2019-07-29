@@ -32,6 +32,7 @@ io.on('connection', client => {
   console.log('a user connected');
   client.on('wait', () => {
     snake.setDefaultParams()
+    snake.resetGame()
     io.emit('stream', {data: snake.getState(), step: snake.stepGame})
   })
   client.on('startNewGame', () => {
@@ -45,10 +46,12 @@ io.on('connection', client => {
   client.on('paused', () => {
     snake.pauseOrResume()
     console.log('Game paused to client')
+    io.emit('stream', {data: snake.getState(), step: snake.stepGame})
   })
   client.on('resumed', () => {
     snake.pauseOrResume()
     console.log('Game resumed to client')
+    io.emit('stream', {data: snake.getState(), step: snake.stepGame})
   })
   // client.on('event', data => { 
   //   console.log('event', data)
