@@ -11,16 +11,20 @@
   <h1>SnakeOnline</h1>
   <div class="body-game" id="body-game">
     <button id="newGame" class="btn-ng">New game</button>
+    <button id="connectToGame" class="btn-ng">Connect to game</button>
   </div>
   <div id="gameplay" style="display: none">
-      <canvas id="canvas" style="border: 1px solid #dcdcdc"></canvas>
-      <div class="sidebar">
-        <p>Score: <span id="score">5</span></p>
-        <button id="restart">Restart</button>
-        <button id="pause"><span id="textOnPause">Pause</span></button>
-        <button id="exit">Exit</button>
-      </div>
+    <canvas id="canvas" style="border: 1px solid #dcdcdc"></canvas>
+    <div class="sidebar">
+      <p>Score: <span id="score">5</span></p>
+      <button id="restart">Restart</button>
+      <button id="pause"><span id="textOnPause">Pause</span></button>
+      <button id="exit">Exit</button>
     </div>
+  </div>
+  <div id="waiting" style="display: none">
+    <h1>Waiting...</h1>
+  </div>
   <script src="./online.js"></script>
   <script>
       init();

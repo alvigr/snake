@@ -28,6 +28,8 @@ function onChangeGame (game) {
 
 snake.on('game', onChangeGame)
 
+const waitingInvite = []
+
 io.on('connection', client => {
   console.log('a user connected');
   client.on('wait', () => {
@@ -37,6 +39,19 @@ io.on('connection', client => {
   })
   client.on('startNewGame', () => {
     console.log('Start new game to client')
+   
+    snake.setDefaultParams()
+    snake.resetGame()
+    client.emit('invite', {data: snake.getState(), step: snake.stepGame})
+
+    let client2 = waitingInvite.shift()
+    if (client2 === undefined) {
+      console.error('start new game without client2')
+
+    } else {
+      client2.emit('invite', {data: snake.getState(), step: snake.stepGame})
+    }
+
     snake.newGame()
   })
   client.on('setRoute', newRoute => {
@@ -52,6 +67,10 @@ io.on('connection', client => {
     snake.pauseOrResume()
     console.log('Game resumed to client')
     io.emit('stream', {data: snake.getState(), step: snake.stepGame})
+  })
+  client.on('requestInvite', () => {
+    console.log('request Invite')
+    waitingInvite.push(client)
   })
   // client.on('event', data => { 
   //   console.log('event', data)

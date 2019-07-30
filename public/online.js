@@ -58,9 +58,27 @@ function pause () {
 
 function newGame () {
   socket.emit('startNewGame')
-  document.getElementById('body-game').style.display="none"
-  document.getElementById('gameplay').style.display="block"
-  startNewGame()
+  socket.on('invite', function (data) {
+    game = data.data
+    stepGame = data.step
+    console.log('invite получен', game.status)
+    document.getElementById('score').innerText = game.snake.level
+    document.getElementById('textOnPause').innerText = game.status === 'paused' ? 'Resume' : 'Pause'
+    hideBlock('waiting')
+    showBlock('gameplay')
+    startNewGame()
+  })
+  showBlock('waiting')
+  hideBlock('gameplay')
+  hideBlock('body-game')
+}
+
+function showBlock (selector) {
+  document.getElementById(selector).style.display = "block"
+}
+
+function hideBlock (selector) {
+  document.getElementById(selector).style.display = "none"
 }
 
 function init () {
@@ -69,16 +87,33 @@ function init () {
   document.addEventListener('keydown', setNextRoute)
   document.getElementById('pause').addEventListener('click', pause)
   document.getElementById('newGame').addEventListener('click', newGame)
+  document.getElementById('connectToGame').addEventListener('click', connectToGame)
   document.getElementById('restart').addEventListener('click', newGame)
   document.getElementById('exit').addEventListener('click', exit)
-  socket.emit('wait')
+}
+
+function connectToGame () {
+  console.log('Connect to game')
+  socket.on('invite', function (data) {
+    game = data.data
+    stepGame = data.step
+    console.log('invite получен', game.status)
+    document.getElementById('score').innerText = game.snake.level
+    document.getElementById('textOnPause').innerText = game.status === 'paused' ? 'Resume' : 'Pause'
+    hideBlock('waiting')
+    showBlock('gameplay')
+    startNewGame()
+  })
+  socket.emit('requestInvite')
+  hideBlock('body-game')
+  showBlock('waiting')
 }
 
 function exit () {
   console.log('exit')
   socket.emit('wait')
-  document.getElementById('body-game').style.display=""
-  document.getElementById('gameplay').style.display="none"
+  showBlock('body-game')
+  hideBlock('gameplay')
 }
 
 function startNewGame () {
