@@ -54,8 +54,8 @@ let game = {
     '#56CCF2',
     '#D96BBA'
   ],
-  width: 500,
-  height: 300
+  width: 600,
+  height: 600
 }
 
 let emitter = new EventEmitter()
