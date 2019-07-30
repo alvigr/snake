@@ -16,11 +16,6 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/online.html');
 });
 
-app.get('/stream', (req, res) => {
-  //res.send('<h1>Hello world</h1>');
-  res.sendFile(__dirname + '/stream.html');
-});
-
 function onChangeGame (game) {
   //console.log('game')
   io.emit('stream', game)
