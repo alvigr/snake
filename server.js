@@ -27,10 +27,9 @@ const waitingInvite = []
 
 io.on('connection', client => {
   console.log('a user connected');
-  client.on('wait', () => {
+  client.on('exit', () => {
     snake.setDefaultParams()
     snake.resetGame()
-    io.emit('stream', {data: snake.getState(), step: snake.stepGame})
   })
   client.on('startNewGame', () => {
     console.log('Start new game to client')

@@ -111,7 +111,7 @@ function connectToGame () {
 
 function exit () {
   console.log('exit')
-  socket.emit('wait')
+  socket.emit('exit')
   showBlock('body-game')
   hideBlock('gameplay')
 }
