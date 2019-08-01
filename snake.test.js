@@ -16,7 +16,8 @@ test('snake is moving', () => {
   snake.newGame()
   const { x } = snake.getState().snake.positionHead
 
-  jest.runOnlyPendingTimers()
+  jest.advanceTimersByTime(1000) 
+
   expect(snake.getState().snake.positionHead.y).toBe(0)
   expect(snake.getState().snake.positionHead.x).toBeGreaterThan(x)
 })
@@ -34,7 +35,6 @@ test('snake level up', () => {
   Math.random = () => { return randVals.shift() }
 
   snake.newGame()
-  console.log(snake.getState().food.position)
 
   jest.runOnlyPendingTimers()
   expect(snake.getState().snake.level).toBe(6)
