@@ -36,16 +36,8 @@ io.on('connection', client => {
    
     snake.setDefaultParams()
     snake.resetGame()
-    client.emit('invite', {data: snake.getState(), step: snake.stepGame, id: snake.getState().snakes[0].id})
-
-    let client2 = waitingInvite.shift()
-    if (client2 === undefined) {
-      console.error('start new game without client2')
-    } else {
-      snake.addSnake()
-      client2.emit('invite', {data: snake.getState(), step: snake.stepGame, id: snake.getState().snakes[1].id})
-    }
-
+    let id = snake.addSnake()
+    client.emit('invite', {data: snake.getState(), step: snake.stepGame, id})
     snake.newGame()
   })
   client.on('setRoute', newRoute => {
@@ -65,6 +57,18 @@ io.on('connection', client => {
   client.on('requestInvite', () => {
     console.log('request Invite')
     waitingInvite.push(client)
+    if (waitingInvite.length === 2) {
+      snake.setDefaultParams()
+      snake.resetGame()
+
+      while (waitingInvite.length > 0) {
+        let waiting = waitingInvite.pop()
+        let id = snake.addSnake()
+        waiting.emit('invite', {data: snake.getState(), step: snake.stepGame, id})
+        console.log('Send invite', id)
+      }
+      snake.newGame()
+    }
   })
   // client.on('event', data => { 
   //   console.log('event', data)

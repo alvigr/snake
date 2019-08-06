@@ -66,6 +66,7 @@ function newGame () {
     game = data.data
     stepGame = data.step
     snakeId = data.id
+    console.log(data)
     console.log('invite получен', game.status)
     document.getElementById('score').innerText = game.snakes[findSnakeWithId(snakeId)].level
     document.getElementById('textOnPause').innerText = game.status === 'paused' ? 'Resume' : 'Pause'
@@ -103,6 +104,7 @@ function connectToGame () {
     game = data.data
     stepGame = data.step
     snakeId = data.id
+    console.log(data)
     console.log('invite получен', game.status)
     document.getElementById('score').innerText = game.snakes[findSnakeWithId(snakeId)].level
     document.getElementById('textOnPause').innerText = game.status === 'paused' ? 'Resume' : 'Pause'

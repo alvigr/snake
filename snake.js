@@ -76,9 +76,10 @@ function newGame () {
 }
 
 function addSnake () {
+  let id = generateId()
   if (game.snakes.length === 0) {
     game.snakes.push({
-      id: generateId(),
+      id,
       level: 5,
       positionHead: {
         x: stepGame * (-1),
@@ -98,7 +99,7 @@ function addSnake () {
     })
   } else {
     game.snakes.push({
-      id: generateId(),
+      id,
       level: 5,
       positionHead: {
         x: stepGame * (-1),
@@ -117,6 +118,7 @@ function addSnake () {
       route: 'left'
     })
   }
+  return id
 }
 
 function findSnakeWithId (id) {
@@ -128,7 +130,6 @@ function findSnakeWithId (id) {
 function setDefaultParams () {
   game.snakes = []
   game.speed = 200
-  addSnake()
 }
 
 function startNewGame () {
