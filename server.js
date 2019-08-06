@@ -2,12 +2,8 @@ const express = require('express')
 const app = express();
 const server = require('http').createServer(app);
 const io = require('socket.io')(server);
-const snake = require('./snake')
+const game = require('./game')
 
-
-snake.on('game', (game) => {
-  //console.log(game.status, game.snake.positionHead)
-})
 
 app.use(express.static('public'));
 
@@ -16,58 +12,58 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/online.html');
 });
 
-function onChangeGame (game) {
+function onChangeGame (data) {
   //console.log('game')
-  io.emit('stream', game)
+  io.emit('stream', data)
 }
 
-snake.on('game', onChangeGame)
+game.on('game', onChangeGame)
 
 const waitingInvite = []
 
 io.on('connection', client => {
   console.log('a user connected');
   client.on('exit', () => {
-    snake.setDefaultParams()
-    snake.resetGame()
+    game.setDefaultParams()
+    game.resetGame()
   })
   client.on('startNewGame', () => {
     console.log('Start new game to client')
    
-    snake.setDefaultParams()
-    snake.resetGame()
-    let id = snake.addSnake()
-    client.emit('invite', {data: snake.getState(), step: snake.stepGame, id})
-    snake.newGame()
+    game.setDefaultParams()
+    game.resetGame()
+    let id = game.addSnake()
+    client.emit('invite', {data: game.getState(), step: game.stepGame, id})
+    game.newGame()
   })
   client.on('setRoute', newRoute => {
-    console.log('New route')
-    snake.setNextRoute(newRoute.requestedRoute, newRoute.snakeId)
+    console.log('New route', newRoute.requestedRoute)
+    game.setNextRoute(newRoute.requestedRoute, newRoute.snakeId)
   })
   client.on('paused', () => {
-    snake.pauseOrResume()
+    game.pauseOrResume()
     console.log('Game paused to client')
-    io.emit('stream', {data: snake.getState(), step: snake.stepGame})
+    io.emit('stream', {data: game.getState(), step: game.stepGame})
   })
   client.on('resumed', () => {
-    snake.pauseOrResume()
+    game.pauseOrResume()
     console.log('Game resumed to client')
-    io.emit('stream', {data: snake.getState(), step: snake.stepGame})
+    io.emit('stream', {data: game.getState(), step: game.stepGame})
   })
   client.on('requestInvite', () => {
     console.log('request Invite')
     waitingInvite.push(client)
     if (waitingInvite.length === 2) {
-      snake.setDefaultParams()
-      snake.resetGame()
+      game.setDefaultParams()
+      game.resetGame()
 
       while (waitingInvite.length > 0) {
         let waiting = waitingInvite.pop()
-        let id = snake.addSnake()
-        waiting.emit('invite', {data: snake.getState(), step: snake.stepGame, id})
+        let id = game.addSnake()
+        waiting.emit('invite', {data: game.getState(), step: game.stepGame, id})
         console.log('Send invite', id)
       }
-      snake.newGame()
+      game.newGame()
     }
   })
   // client.on('event', data => { 
@@ -75,7 +71,7 @@ io.on('connection', client => {
   //  });
   client.on('disconnect', () => { 
     console.log('user closed connection')
-    snake.resetGame()
+    game.resetGame()
    });
 });
 
