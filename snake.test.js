@@ -8,25 +8,27 @@ afterEach(() => {
 
 test('status playing after starting new game', () => {
   expect(snake.getState().status).toBe('wait')
+  snake.resetGame()
   snake.newGame()
   expect(snake.getState().status).toBe('playing')
 })
 
 test('snake is moving', () => {
   snake.newGame()
-  const { x } = snake.getState().snake.positionHead
+  const { x } = snake.getState().snakes[0].positionHead
 
   jest.advanceTimersByTime(1000) 
 
-  expect(snake.getState().snake.positionHead.y).toBe(0)
-  expect(snake.getState().snake.positionHead.x).toBeGreaterThan(x)
+  expect(snake.getState().snakes[0].positionHead.y).toBe(0)
+  expect(snake.getState().snakes[0].positionHead.x).toBeGreaterThan(x)
 })
 
 test('snake move to down', () => {
   snake.newGame()
-  snake.setNextRoute('down')
+  let id = snake.getState().snakes[0].id
+  snake.setNextRoute('down', id)
   jest.runOnlyPendingTimers()
-  expect(snake.getState().snake.positionHead.y).toBeGreaterThan(0)
+  expect(snake.getState().snakes[0].positionHead.y).toBeGreaterThan(0)
 })
 
 test('snake level up', () => {
@@ -37,7 +39,7 @@ test('snake level up', () => {
   snake.newGame()
 
   jest.runOnlyPendingTimers()
-  expect(snake.getState().snake.level).toBe(6)
+  expect(snake.getState().snakes[0].level).toBe(6)
 
   Math.random = orig
 })

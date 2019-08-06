@@ -20,14 +20,11 @@ const keyMap = {
 let animate
 let r
 let dir = 1
-let x
-let y
-let dirHx
-let dirHy
 //
 
 let game
 let stepGame
+let snakeId
 
 const socket = io('http://localhost:3000')
 
@@ -39,7 +36,14 @@ socket.on('stream', function (data) {
   game = data.data
   stepGame = data.step
   console.log('Game получен', game.status)
-  document.getElementById('score').innerText = game.snake.level
+  if (game.status === 'finished') {
+    setTimeout(() => {
+      showBlock('body-game')
+      hideBlock('gameplay')
+      hideBlock('waiting')
+    }, 5000)
+  }
+  document.getElementById('score').innerText = game.snakes[findSnakeWithId(snakeId)].level
   document.getElementById('textOnPause').innerText = game.status === 'paused' ? 'Resume' : 'Pause'
 })
 
@@ -61,8 +65,9 @@ function newGame () {
   socket.on('invite', function (data) {
     game = data.data
     stepGame = data.step
+    snakeId = data.id
     console.log('invite получен', game.status)
-    document.getElementById('score').innerText = game.snake.level
+    document.getElementById('score').innerText = game.snakes[findSnakeWithId(snakeId)].level
     document.getElementById('textOnPause').innerText = game.status === 'paused' ? 'Resume' : 'Pause'
     hideBlock('waiting')
     showBlock('gameplay')
@@ -97,8 +102,9 @@ function connectToGame () {
   socket.on('invite', function (data) {
     game = data.data
     stepGame = data.step
+    snakeId = data.id
     console.log('invite получен', game.status)
-    document.getElementById('score').innerText = game.snake.level
+    document.getElementById('score').innerText = game.snakes[findSnakeWithId(snakeId)].level
     document.getElementById('textOnPause').innerText = game.status === 'paused' ? 'Resume' : 'Pause'
     hideBlock('waiting')
     showBlock('gameplay')
@@ -126,8 +132,8 @@ function startNewGame () {
 }
 
 function playGame () {
-  // console.log(game.snake.positionHead)
-  // console.log(...game.snake.positionBody)
+  // console.log(snake.positionHead)
+  // console.log(...snake.positionBody)
   
   //socket.emit('game', game)
 }
@@ -137,54 +143,58 @@ function setNextRoute (event) {
     return
   }
   let requestedRoute = keyMap[event.key]
-  if (requestedRoute === Routes.UP && game.snake.route === Routes.DOWN) {
+  if (requestedRoute === Routes.UP && game.snakes[findSnakeWithId(snakeId)].route === Routes.DOWN) {
     return
   }
-  if (requestedRoute === Routes.DOWN && game.snake.route === Routes.UP) {
+  if (requestedRoute === Routes.DOWN && game.snakes[findSnakeWithId(snakeId)].route === Routes.UP) {
     return
   }
-  if (requestedRoute === Routes.RIGHT && game.snake.route === Routes.LEFT) {
+  if (requestedRoute === Routes.RIGHT && game.snakes[findSnakeWithId(snakeId)].route === Routes.LEFT) {
     return
   }
-  if (requestedRoute === Routes.LEFT && game.snake.route === Routes.RIGHT) {
+  if (requestedRoute === Routes.LEFT && game.snakes[findSnakeWithId(snakeId)].route === Routes.RIGHT) {
     return
   }
-  if (game.status === 'playing') socket.emit('setRoute', requestedRoute)
+  if (game.status === 'playing') socket.emit('setRoute', {requestedRoute, snakeId})
+}
+
+function findSnakeWithId (id) {
+  return game.snakes.findIndex((snake) => {
+    return snake.id === id ? true : false
+  })
 }
 
 function draw () {
   clearScreen()
-  drawFood()
-  drawBody()
-  drawHead()
+  game.snakes.forEach((snake) => {
+    drawFood()
+    drawBody(snake)
+    drawHead(snake)
+  })
   animate = requestAnimationFrame(draw)
 }
 
-function drawHead () {
-  dirHx = (game.snake.positionHead.x - game.snake.positionBody[game.snake.positionBody.length - 2].x) / game.step
-  dirHy = (game.snake.positionHead.y - game.snake.positionBody[game.snake.positionBody.length - 2].y) / game.step
-  x += (game.step / 12) * dirHx
-  y += (game.step / 12) * dirHy
+function drawHead (snake) {
   ctx.beginPath()
   ctx.fillStyle = game.status === 'finished' ? '#D73333' : '#366A5D'
   ctx.fillRect(
-    game.snake.positionHead.x, 
-    game.snake.positionHead.y, 
+    snake.positionHead.x, 
+    snake.positionHead.y, 
     stepGame, 
     stepGame
   )
   ctx.closePath()
-  // console.log(game.snake.positionHead.x, game.snake.positionBody[game.snake.positionBody.length - 1].x)
+  // console.log(snake.positionHead.x, snake.positionBody[snake.positionBody.length - 1].x)
 }
 
-function drawBody () {
-  if (game.snake.positionBody.length >= 1) {
-    for (let i = 0; i < game.snake.positionBody.length; i++) {
+function drawBody (snake) {
+  if (snake.positionBody.length >= 1) {
+    for (let i = 0; i < snake.positionBody.length; i++) {
       ctx.beginPath()
       ctx.fillStyle = '#63A794'
       ctx.fillRect(
-        game.snake.positionBody[i].x, 
-        game.snake.positionBody[i].y, 
+        snake.positionBody[i].x, 
+        snake.positionBody[i].y, 
         stepGame, 
         stepGame
       )
