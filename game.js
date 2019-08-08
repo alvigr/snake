@@ -1,5 +1,9 @@
 const EventEmitter = require('events')
-const stepGame = 20
+const gameField = {
+  width: 800,
+  height: 600,
+  step: 20,
+}
 
 let timerId
 
@@ -19,7 +23,7 @@ const Statuses = {
 
 let game = {
   status: Statuses.WAIT,
-  speed: 200,
+  speed: 170,
   snakes: [],
   food: {
     position: {
@@ -37,8 +41,6 @@ let game = {
     '#56CCF2',
     '#D96BBA'
   ],
-  width: 600,
-  height: 600
 }
 
 let emitter = new EventEmitter()
@@ -57,6 +59,10 @@ function changeStatus (status) {
 
 function getState () {
   return game
+}
+
+function getField () {
+  return gameField
 }
 
 function pauseOrResume () {
@@ -82,16 +88,16 @@ function addSnake () {
       id,
       level: 5,
       positionHead: {
-        x: stepGame * (-1),
+        x: gameField.step * (-1),
         y: 0
       },
       positionBody: [
         {
-          x: stepGame * (-3),
+          x: gameField.step * (-3),
           y: 0
         },
         {
-        x: stepGame * (-2),
+        x: gameField.step * (-2),
         y: 0
       }],
       nextRoute: 'right',
@@ -102,17 +108,17 @@ function addSnake () {
       id,
       level: 5,
       positionHead: {
-        x: stepGame * (-1),
-        y: stepGame
+        x: gameField.step * (-1),
+        y: gameField.step
       },
       positionBody: [
         {
-          x: stepGame * (-3),
-          y: stepGame
+          x: gameField.step * (-3),
+          y: gameField.step
         },
         {
-        x: stepGame * (-2),
-        y: stepGame
+        x: gameField.step * (-2),
+        y: gameField.step
       }],
       nextRoute: 'left',
       route: 'left'
@@ -122,9 +128,7 @@ function addSnake () {
 }
 
 function findSnakeWithId (id) {
-  return game.snakes.findIndex((snake) => {
-    return snake.id === id ? true : false
-  })
+  return game.snakes.findIndex(snake => snake.id === id)
 }
 
 function setDefaultParams () {
@@ -137,7 +141,7 @@ function startNewGame () {
   setFood(game.snakes[0])
   timerId = setInterval(playGame, game.speed)
   changeStatus(Statuses.PLAYING)
-  emitter.emit('game', {data: game, step: stepGame})
+  emitter.emit('game', {data: game, step: gameField.step})
 }
 
 function resetGame () {
@@ -158,7 +162,7 @@ function playGame () {
       moveBody(snake)
     })
   }
-  emitter.emit('game', {data: game, step: stepGame})
+  emitter.emit('game', {data: game, step: gameField.step})
 }
 
 function setNextRoute (requestedRoute, id) {
@@ -184,26 +188,26 @@ function setRoute (snake) {
 
 function moveHead (snake) {
   if (snake.route === 'right') {
-    snake.positionHead.x += stepGame
-    if (snake.positionHead.x >= game.width) {
+    snake.positionHead.x += gameField.step
+    if (snake.positionHead.x >= gameField.width) {
       snake.positionHead.x = 0
     }
   }
   if (snake.route === 'left') {
-    snake.positionHead.x -= stepGame
+    snake.positionHead.x -= gameField.step
     if (snake.positionHead.x < 0) {
-      snake.positionHead.x = game.width - stepGame
+      snake.positionHead.x = gameField.width - gameField.step
     }
   }
   if (snake.route === 'up') {
-    snake.positionHead.y -= stepGame
+    snake.positionHead.y -= gameField.step
     if (snake.positionHead.y < 0) {
-      snake.positionHead.y = game.height - stepGame
+      snake.positionHead.y = gameField.height - gameField.step
     }
   }
   if (snake.route === 'down') {
-    snake.positionHead.y += stepGame
-    if (snake.positionHead.y >= game.height) {
+    snake.positionHead.y += gameField.step
+    if (snake.positionHead.y >= gameField.height) {
       snake.positionHead.y = 0
     }
   }
@@ -226,8 +230,8 @@ function generateId () {
 
 function setFood (snake) {
   let posForFood = {
-    x: randomInteger(0, (game.width - stepGame) / stepGame) * stepGame, 
-    y: randomInteger(0, (game.height - stepGame) / stepGame) * stepGame
+    x: randomInteger(0, (gameField.width - gameField.step) / gameField.step) * gameField.step, 
+    y: randomInteger(0, (gameField.height - gameField.step) / gameField.step) * gameField.step
   }
   if (
     snake.positionBody.findIndex(function (element) {
@@ -305,7 +309,7 @@ module.exports = {
   newGame,
   addSnake,
   getState,
-  stepGame,
+  getField,
   pauseOrResume,
   setNextRoute,
   on,

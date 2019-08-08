@@ -9,18 +9,22 @@
 </head>
 <body>
   <h1>SnakeOnline</h1>
-  <div class="body-game" id="body-game">
-    <button id="newGame" class="btn-ng">Single player</button>
-    <button id="connectToGame" class="btn-ng">Multi player</button>
+  <div class="menu" id="menu">
+    <button id="singlePlayer" class="btn btn-menu">Single player</button>
+    <button id="multiPlayer" class="btn btn-menu">Multi player</button>
   </div>
   <div id="gameplay" style="display: none">
-    <canvas id="canvas" style="border: 1px solid #dcdcdc"></canvas>
-    <div class="sidebar">
-      <p>Score: <span id="score">5</span></p>
-      <button id="restart">Restart</button>
-      <button id="pause"><span id="textOnPause">Pause</span></button>
-      <button id="exit">Exit</button>
+    <div class="control-panel">
+      <div class="info-bar">
+        <p>Score: <span id="score">5</span></p>
+      </div>
+      <div class="game-menu">
+        <button id="restart" class="btn">Restart</button>
+        <button id="pause" class="btn"><span id="textOnPause">Pause</span></button>
+        <button id="exit" class="btn">Exit</button>
+      </div>
     </div>
+    <canvas id="canvas" style="border: 1px solid #dcdcdc"></canvas>
   </div>
   <div id="waiting" style="display: none">
     <h1>Waiting...</h1>

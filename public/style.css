@@ -12,9 +12,10 @@ h1 {
 
 p {
   color: #2A453E;
+  margin: 0;
 }
 
-.body-game {
+.menu {
   background-image: url(snakebg.jpg);
   background-position-x: center;
   background-position-y: top;
@@ -26,27 +27,49 @@ p {
 #canvas {
   margin: 0 auto;
   display: block;
-  float: left;
 }
 
-.body-game #gameplay {
+.menu #gameplay {
   text-align: center;
 }
-
-.btn-ng {
-  font-family: 'Bubblegum Sans', cursive;
-  font-size: 24px;
+.btn {
   color: #2A453E;
   background-color: #C9CDBF;
+  border: 0;
+  transition: 200ms;
+}
+
+.btn:hover {
+  background-color: #bbc0af;
+}
+
+.btn-menu {
+  font-family: 'Bubblegum Sans', cursive;
+  font-size: 24px;
   width: 200px;
   height: 64px;
   border-radius: 32px;
-  border: 0;
-  margin: 200px auto
+  margin: 200px auto;
 }
 
-.sidebar {
-  widows: 240px;
-  margin-left: 40px;
+.control-panel {
+  display: block;
+  margin-bottom: 20px; 
+  min-height: 30px;
+}
+
+.info-bar {
   display: inline-block;
+}
+
+.game-menu {
+  display: block;
+  float: right;
+}
+
+.game-menu button {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 14px;
+  margin-left: 8px;
+  padding: 4px 8px 4px 8px;
 }

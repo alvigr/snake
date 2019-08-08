@@ -14,10 +14,23 @@ app.get('/', (req, res) => {
 
 function onChangeGame (data) {
   //console.log('game')
-  io.emit('stream', data)
+  emitStateAll('stream')
 }
 
 game.on('game', onChangeGame)
+
+function getState (client) {
+  let id = activeClients.filter(obj => obj.client === client)[0].id
+  return {data: game.getState(), gameField: game.getField(), id}
+}
+
+function emitStateAll (event) {
+  activeClients.forEach((activeClient) => {
+    activeClient.client.emit(event, getState(activeClient.client))
+  })
+}
+
+let activeClients = []
 
 const waitingInvite = []
 
@@ -33,7 +46,8 @@ io.on('connection', client => {
     game.setDefaultParams()
     game.resetGame()
     let id = game.addSnake()
-    client.emit('invite', {data: game.getState(), step: game.stepGame, id})
+    activeClients.push({id, client})
+    client.emit('invite', getState(client))
     game.newGame()
   })
   client.on('setRoute', newRoute => {
@@ -43,12 +57,12 @@ io.on('connection', client => {
   client.on('paused', () => {
     game.pauseOrResume()
     console.log('Game paused to client')
-    io.emit('stream', {data: game.getState(), step: game.stepGame})
+    emitStateAll('stream')
   })
   client.on('resumed', () => {
     game.pauseOrResume()
     console.log('Game resumed to client')
-    io.emit('stream', {data: game.getState(), step: game.stepGame})
+    emitStateAll('stream')
   })
   client.on('requestInvite', () => {
     console.log('request Invite')
@@ -60,7 +74,7 @@ io.on('connection', client => {
       while (waitingInvite.length > 0) {
         let waiting = waitingInvite.pop()
         let id = game.addSnake()
-        waiting.emit('invite', {data: game.getState(), step: game.stepGame, id})
+        waiting.emit('invite', getState(waiting))
         console.log('Send invite', id)
       }
       game.newGame()
@@ -71,6 +85,7 @@ io.on('connection', client => {
   //  });
   client.on('disconnect', () => { 
     console.log('user closed connection')
+    activeClients = activeClients.filter(obj => obj.client !== client)
     game.resetGame()
    });
 });

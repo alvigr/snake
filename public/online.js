@@ -23,7 +23,7 @@ let dir = 1
 //
 
 let game
-let stepGame
+let gameField
 let snakeId
 
 const socket = io('http://localhost:3000')
@@ -33,12 +33,13 @@ socket.on('connect', function() {
 })
 
 socket.on('stream', function (data) {
+  console.log('stream', data.gameField)
   game = data.data
-  stepGame = data.step
+  gameField = data.gameField
   console.log('Game получен', game.status)
   if (game.status === 'finished') {
     setTimeout(() => {
-      showBlock('body-game')
+      showBlock('menu')
       hideBlock('gameplay')
       hideBlock('waiting')
     }, 5000)
@@ -63,10 +64,11 @@ function pause () {
 function newGame () {
   socket.emit('startNewGame')
   socket.on('invite', function (data) {
+    console.log('startNewGame', data.gameField)
     game = data.data
-    stepGame = data.step
+    gameField = data.gameField
     snakeId = data.id
-    console.log(data)
+    console.log(data, gameField.step)
     console.log('invite получен', game.status)
     document.getElementById('score').innerText = game.snakes[findSnakeWithId(snakeId)].level
     document.getElementById('textOnPause').innerText = game.status === 'paused' ? 'Resume' : 'Pause'
@@ -76,7 +78,7 @@ function newGame () {
   })
   showBlock('waiting')
   hideBlock('gameplay')
-  hideBlock('body-game')
+  hideBlock('menu')
 }
 
 function showBlock (selector) {
@@ -92,8 +94,8 @@ function init () {
   ctx = canvas.getContext('2d')
   document.addEventListener('keydown', setNextRoute)
   document.getElementById('pause').addEventListener('click', pause)
-  document.getElementById('newGame').addEventListener('click', newGame)
-  document.getElementById('connectToGame').addEventListener('click', connectToGame)
+  document.getElementById('singlePlayer').addEventListener('click', newGame)
+  document.getElementById('multiPlayer').addEventListener('click', connectToGame)
   document.getElementById('restart').addEventListener('click', newGame)
   document.getElementById('exit').addEventListener('click', exit)
 }
@@ -101,8 +103,9 @@ function init () {
 function connectToGame () {
   console.log('Connect to game')
   socket.on('invite', function (data) {
+    console.log('invite', data.gameField)
     game = data.data
-    stepGame = data.step
+    gameField = data.gameField
     snakeId = data.id
     console.log(data)
     console.log('invite получен', game.status)
@@ -113,23 +116,24 @@ function connectToGame () {
     startNewGame()
   })
   socket.emit('requestInvite')
-  hideBlock('body-game')
+  hideBlock('menu')
   showBlock('waiting')
 }
 
 function exit () {
   console.log('exit')
   socket.emit('exit')
-  showBlock('body-game')
+  showBlock('menu')
   hideBlock('gameplay')
 }
 
 function startNewGame () {
+  console.log('startNewGame')
   cancelAnimationFrame(animate)
   clearScreen()
-  canvas.width = game.width
-  canvas.height = game.height
-  r = (stepGame / 2) * 10
+  canvas.width = gameField.width
+  canvas.height = gameField.height
+  r = (gameField.step / 2) * 10
   draw()
 }
 
@@ -182,8 +186,8 @@ function drawHead (snake) {
   ctx.fillRect(
     snake.positionHead.x, 
     snake.positionHead.y, 
-    stepGame, 
-    stepGame
+    gameField.step, 
+    gameField.step
   )
   ctx.closePath()
   // console.log(snake.positionHead.x, snake.positionBody[snake.positionBody.length - 1].x)
@@ -197,8 +201,8 @@ function drawBody (snake) {
       ctx.fillRect(
         snake.positionBody[i].x, 
         snake.positionBody[i].y, 
-        stepGame, 
-        stepGame
+        gameField.step, 
+        gameField.step
       )
       ctx.closePath()
     }
@@ -207,12 +211,12 @@ function drawBody (snake) {
 
 function drawFood () {
   r += dir
-  if (r === (stepGame / 2) * 10 + 15 || r === (stepGame / 2) * 10 - 30) dir *= -1
+  if (r === (gameField.step / 2) * 10 + 15 || r === (gameField.step / 2) * 10 - 30) dir *= -1
   ctx.beginPath()
   ctx.fillStyle = game.food.color
   ctx.arc(
-    game.food.position.x + (stepGame / 2), 
-    game.food.position.y + (stepGame / 2), 
+    game.food.position.x + (gameField.step / 2), 
+    game.food.position.y + (gameField.step / 2), 
     r / 10, 
     0, 
     Math.PI*2
