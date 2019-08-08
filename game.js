@@ -1,8 +1,8 @@
 const EventEmitter = require('events')
-const gameField = {
+const gameArea = {
   width: 800,
   height: 600,
-  step: 20,
+  cell: 20,
 }
 
 let timerId
@@ -61,8 +61,8 @@ function getState () {
   return game
 }
 
-function getField () {
-  return gameField
+function getArea () {
+  return gameArea
 }
 
 function pauseOrResume () {
@@ -77,10 +77,6 @@ function pauseOrResume () {
   }
 }
 
-function newGame () {
-  startNewGame()
-}
-
 function addSnake () {
   let id = generateId()
   if (game.snakes.length === 0) {
@@ -88,18 +84,10 @@ function addSnake () {
       id,
       level: 5,
       positionHead: {
-        x: gameField.step * (-1),
+        x: gameArea.cell * (-1),
         y: 0
       },
-      positionBody: [
-        {
-          x: gameField.step * (-3),
-          y: 0
-        },
-        {
-        x: gameField.step * (-2),
-        y: 0
-      }],
+      positionBody: [],
       nextRoute: 'right',
       route: 'right'
     })
@@ -108,18 +96,10 @@ function addSnake () {
       id,
       level: 5,
       positionHead: {
-        x: gameField.step * (-1),
-        y: gameField.step
+        x: gameArea.cell * (-1),
+        y: gameArea.cell
       },
-      positionBody: [
-        {
-          x: gameField.step * (-3),
-          y: gameField.step
-        },
-        {
-        x: gameField.step * (-2),
-        y: gameField.step
-      }],
+      positionBody: [],
       nextRoute: 'left',
       route: 'left'
     })
@@ -133,7 +113,6 @@ function findSnakeWithId (id) {
 
 function setDefaultParams () {
   game.snakes = []
-  game.speed = 200
 }
 
 function startNewGame () {
@@ -141,7 +120,7 @@ function startNewGame () {
   setFood(game.snakes[0])
   timerId = setInterval(playGame, game.speed)
   changeStatus(Statuses.PLAYING)
-  emitter.emit('game', {data: game, step: gameField.step})
+  emitter.emit('game', {data: game, step: gameArea.cell})
 }
 
 function resetGame () {
@@ -162,7 +141,7 @@ function playGame () {
       moveBody(snake)
     })
   }
-  emitter.emit('game', {data: game, step: gameField.step})
+  emitter.emit('game', {data: game, step: gameArea.cell})
 }
 
 function setNextRoute (requestedRoute, id) {
@@ -188,26 +167,26 @@ function setRoute (snake) {
 
 function moveHead (snake) {
   if (snake.route === 'right') {
-    snake.positionHead.x += gameField.step
-    if (snake.positionHead.x >= gameField.width) {
+    snake.positionHead.x += gameArea.cell
+    if (snake.positionHead.x >= gameArea.width) {
       snake.positionHead.x = 0
     }
   }
   if (snake.route === 'left') {
-    snake.positionHead.x -= gameField.step
+    snake.positionHead.x -= gameArea.cell
     if (snake.positionHead.x < 0) {
-      snake.positionHead.x = gameField.width - gameField.step
+      snake.positionHead.x = gameArea.width - gameArea.cell
     }
   }
   if (snake.route === 'up') {
-    snake.positionHead.y -= gameField.step
+    snake.positionHead.y -= gameArea.cell
     if (snake.positionHead.y < 0) {
-      snake.positionHead.y = gameField.height - gameField.step
+      snake.positionHead.y = gameArea.height - gameArea.cell
     }
   }
   if (snake.route === 'down') {
-    snake.positionHead.y += gameField.step
-    if (snake.positionHead.y >= gameField.height) {
+    snake.positionHead.y += gameArea.cell
+    if (snake.positionHead.y >= gameArea.height) {
       snake.positionHead.y = 0
     }
   }
@@ -230,8 +209,8 @@ function generateId () {
 
 function setFood (snake) {
   let posForFood = {
-    x: randomInteger(0, (gameField.width - gameField.step) / gameField.step) * gameField.step, 
-    y: randomInteger(0, (gameField.height - gameField.step) / gameField.step) * gameField.step
+    x: randomInteger(0, (gameArea.width - gameArea.cell) / gameArea.cell) * gameArea.cell, 
+    y: randomInteger(0, (gameArea.height - gameArea.cell) / gameArea.cell) * gameArea.cell
   }
   if (
     snake.positionBody.findIndex(function (element) {
@@ -293,8 +272,6 @@ function moveBody (snake) {
     x: snake.positionHead.x, 
     y: snake.positionHead.y
   })
-  x = snake.positionBody[snake.positionBody.length - 2].x
-  y = snake.positionBody[snake.positionBody.length - 2].y
 }
 
 function moveTail (snake) {
@@ -306,10 +283,10 @@ function moveTail (snake) {
 module.exports = {
   setDefaultParams,
   resetGame,
-  newGame,
+  startNewGame,
   addSnake,
   getState,
-  getField,
+  getArea,
   pauseOrResume,
   setNextRoute,
   on,

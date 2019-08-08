@@ -29,7 +29,7 @@ let dir = 1
 //
 
 let game
-let gameField
+let gameArea
 let snakeId
 
 const socket = io('http://localhost:3000')
@@ -39,18 +39,20 @@ socket.on('connect', function() {
 })
 
 socket.on('stream', function (data) {
-  console.log('stream', data.gameField)
+  console.log('stream', data.gameArea)
   game = data.data
-  gameField = data.gameField
+  gameArea = data.gameArea
   console.log('Game получен', game.status)
   if (game.status === 'finished') {
+    socket.emit('finished')
     setTimeout(() => {
       showBlock('menu')
       hideBlock('gameplay')
       hideBlock('waiting')
     }, 5000)
   }
-  document.getElementById('score').innerText = game.snakes[findSnakeWithId(snakeId)].level
+  console.log(data.id, snakeId)
+  document.getElementById('score').innerText = mySnake().level
   document.getElementById('textOnPause').innerText = game.status === 'paused' ? 'Resume' : 'Pause'
 })
 
@@ -89,13 +91,13 @@ function init () {
 function connectToGame (mode) {
   console.log('Connect to game')
   socket.on('invite', function (data) {
-    console.log('invite', data.gameField)
+    console.log('invite', data.gameArea)
     game = data.data
-    gameField = data.gameField
+    gameArea = data.gameArea
     snakeId = data.id
     console.log(data)
     console.log('invite получен', game.status)
-    document.getElementById('score').innerText = game.snakes[findSnakeWithId(snakeId)].level
+    document.getElementById('score').innerText = mySnake().level
     document.getElementById('textOnPause').innerText = game.status === 'paused' ? 'Resume' : 'Pause'
     hideBlock('waiting')
     showBlock('gameplay')
@@ -117,17 +119,11 @@ function startNewGame () {
   console.log('startNewGame')
   cancelAnimationFrame(animate)
   clearScreen()
-  canvas.width = gameField.width
-  canvas.height = gameField.height
-  r = (gameField.step / 2) * 10
+  console.log(gameArea)
+  canvas.width = gameArea.width
+  canvas.height = gameArea.height
+  r = (gameArea.cell / 2) * 10
   draw()
-}
-
-function playGame () {
-  // console.log(snake.positionHead)
-  // console.log(...snake.positionBody)
-  
-  //socket.emit('game', game)
 }
 
 function setNextRoute (event) {
@@ -135,26 +131,28 @@ function setNextRoute (event) {
     return
   }
   let requestedRoute = keyMap[event.key]
-  if (requestedRoute === Routes.UP && game.snakes[findSnakeWithId(snakeId)].route === Routes.DOWN) {
+  if (requestedRoute === Routes.UP && mySnake().route === Routes.DOWN) {
     return
   }
-  if (requestedRoute === Routes.DOWN && game.snakes[findSnakeWithId(snakeId)].route === Routes.UP) {
+  if (requestedRoute === Routes.DOWN && mySnake().route === Routes.UP) {
     return
   }
-  if (requestedRoute === Routes.RIGHT && game.snakes[findSnakeWithId(snakeId)].route === Routes.LEFT) {
+  if (requestedRoute === Routes.RIGHT && mySnake().route === Routes.LEFT) {
     return
   }
-  if (requestedRoute === Routes.LEFT && game.snakes[findSnakeWithId(snakeId)].route === Routes.RIGHT) {
+  if (requestedRoute === Routes.LEFT && mySnake().route === Routes.RIGHT) {
     return
   }
   if (game.status === 'playing') socket.emit('setRoute', {requestedRoute, snakeId})
 }
 
-function findSnakeWithId (id) {
-  return game.snakes.findIndex((snake) => {
-    return snake.id === id ? true : false
-  })
+function mySnake () {
+  return getSnake(snakeId)
 }
+
+function getSnake (id) {
+  return game.snakes.filter(snake => snake.id === id)[0]
+} 
 
 function draw () {
   clearScreen()
@@ -172,11 +170,10 @@ function drawHead (snake) {
   ctx.fillRect(
     snake.positionHead.x, 
     snake.positionHead.y, 
-    gameField.step, 
-    gameField.step
+    gameArea.cell, 
+    gameArea.cell
   )
   ctx.closePath()
-  // console.log(snake.positionHead.x, snake.positionBody[snake.positionBody.length - 1].x)
 }
 
 function drawBody (snake) {
@@ -187,8 +184,8 @@ function drawBody (snake) {
       ctx.fillRect(
         snake.positionBody[i].x, 
         snake.positionBody[i].y, 
-        gameField.step, 
-        gameField.step
+        gameArea.cell, 
+        gameArea.cell
       )
       ctx.closePath()
     }
@@ -197,12 +194,12 @@ function drawBody (snake) {
 
 function drawFood () {
   r += dir
-  if (r === (gameField.step / 2) * 10 + 15 || r === (gameField.step / 2) * 10 - 30) dir *= -1
+  if (r === (gameArea.cell / 2) * 10 + 15 || r === (gameArea.cell / 2) * 10 - 30) dir *= -1
   ctx.beginPath()
   ctx.fillStyle = game.food.color
   ctx.arc(
-    game.food.position.x + (gameField.step / 2), 
-    game.food.position.y + (gameField.step / 2), 
+    game.food.position.x + (gameArea.cell / 2), 
+    game.food.position.y + (gameArea.cell / 2), 
     r / 10, 
     0, 
     Math.PI*2
