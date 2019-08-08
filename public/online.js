@@ -9,6 +9,12 @@ const Routes = {
   RIGHT: 'right', 
   LEFT: 'left'
 }
+
+const Modes = {
+  SINGLE: 'single',
+  MULTI: 'multi'
+}
+
 const keyMap = { 
   ArrowUp: Routes.UP, 
   ArrowDown: Routes.DOWN, 
@@ -61,26 +67,6 @@ function pause () {
   }
 }
 
-function newGame () {
-  socket.emit('startNewGame')
-  socket.on('invite', function (data) {
-    console.log('startNewGame', data.gameField)
-    game = data.data
-    gameField = data.gameField
-    snakeId = data.id
-    console.log(data, gameField.step)
-    console.log('invite получен', game.status)
-    document.getElementById('score').innerText = game.snakes[findSnakeWithId(snakeId)].level
-    document.getElementById('textOnPause').innerText = game.status === 'paused' ? 'Resume' : 'Pause'
-    hideBlock('waiting')
-    showBlock('gameplay')
-    startNewGame()
-  })
-  showBlock('waiting')
-  hideBlock('gameplay')
-  hideBlock('menu')
-}
-
 function showBlock (selector) {
   document.getElementById(selector).style.display = "block"
 }
@@ -94,13 +80,13 @@ function init () {
   ctx = canvas.getContext('2d')
   document.addEventListener('keydown', setNextRoute)
   document.getElementById('pause').addEventListener('click', pause)
-  document.getElementById('singlePlayer').addEventListener('click', newGame)
-  document.getElementById('multiPlayer').addEventListener('click', connectToGame)
-  document.getElementById('restart').addEventListener('click', newGame)
+  document.getElementById('singlePlayer').addEventListener('click', () => {connectToGame(Modes.SINGLE)})
+  document.getElementById('multiPlayer').addEventListener('click', () => {connectToGame(Modes.MULTI)})
+  //document.getElementById('restart').addEventListener('click', newGame)
   document.getElementById('exit').addEventListener('click', exit)
 }
 
-function connectToGame () {
+function connectToGame (mode) {
   console.log('Connect to game')
   socket.on('invite', function (data) {
     console.log('invite', data.gameField)
@@ -115,7 +101,7 @@ function connectToGame () {
     showBlock('gameplay')
     startNewGame()
   })
-  socket.emit('requestInvite')
+  socket.emit('requestInvite', {mode})
   hideBlock('menu')
   showBlock('waiting')
 }

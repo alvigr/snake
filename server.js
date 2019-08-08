@@ -3,6 +3,10 @@ const app = express();
 const server = require('http').createServer(app);
 const io = require('socket.io')(server);
 const game = require('./game')
+const Modes = {
+  SINGLE: 'single',
+  MULTI: 'multi'
+}
 
 
 app.use(express.static('public'));
@@ -40,16 +44,6 @@ io.on('connection', client => {
     game.setDefaultParams()
     game.resetGame()
   })
-  client.on('startNewGame', () => {
-    console.log('Start new game to client')
-   
-    game.setDefaultParams()
-    game.resetGame()
-    let id = game.addSnake()
-    activeClients.push({id, client})
-    client.emit('invite', getState(client))
-    game.newGame()
-  })
   client.on('setRoute', newRoute => {
     console.log('New route', newRoute.requestedRoute)
     game.setNextRoute(newRoute.requestedRoute, newRoute.snakeId)
@@ -64,20 +58,29 @@ io.on('connection', client => {
     console.log('Game resumed to client')
     emitStateAll('stream')
   })
-  client.on('requestInvite', () => {
+  client.on('requestInvite', options => {
     console.log('request Invite')
-    waitingInvite.push(client)
-    if (waitingInvite.length === 2) {
+    if (options.mode === Modes.SINGLE) {
       game.setDefaultParams()
       game.resetGame()
-
-      while (waitingInvite.length > 0) {
-        let waiting = waitingInvite.pop()
-        let id = game.addSnake()
-        waiting.emit('invite', getState(waiting))
-        console.log('Send invite', id)
-      }
+      let id = game.addSnake()
+      activeClients.push({id, client})
+      client.emit('invite', getState(client))
       game.newGame()
+    } else {
+      waitingInvite.push(client)
+      if (waitingInvite.length === 2) {
+        game.setDefaultParams()
+        game.resetGame()
+        while (waitingInvite.length > 0) {
+          let waiting = waitingInvite.pop()
+          let id = game.addSnake()
+          activeClients.push({id, client: waiting})
+          waiting.emit('invite', getState(waiting))
+          console.log('Send invite', id)
+        }
+        game.newGame()
+      }
     }
   })
   // client.on('event', data => { 
