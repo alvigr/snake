@@ -21,6 +21,27 @@ const Statuses = {
   FINISHED: 'finished'
 }
 
+const StartPosition = [
+  {
+    positionHead: {
+      x: gameArea.cell * (-1),
+      y: 0
+    },
+    positionBody: [],
+    nextRoute: Routes.RIGHT,
+    route: Routes.RIGHT
+  },
+  {
+    positionHead: {
+      x: gameArea.cell * (-1),
+      y: gameArea.height - gameArea.cell
+    },
+    positionBody: [],
+    nextRoute: Routes.LEFT,
+    route: Routes.LEFT
+  }
+]
+
 let game = {
   status: Statuses.WAIT,
   speed: 170,
@@ -79,31 +100,19 @@ function pauseOrResume () {
 
 function addSnake () {
   let id = generateId()
-  if (game.snakes.length === 0) {
-    game.snakes.push({
-      id,
-      level: 5,
-      positionHead: {
-        x: gameArea.cell * (-1),
-        y: 0
-      },
-      positionBody: [],
-      nextRoute: 'right',
-      route: 'right'
-    })
-  } else {
-    game.snakes.push({
-      id,
-      level: 5,
-      positionHead: {
-        x: gameArea.cell * (-1),
-        y: gameArea.cell
-      },
-      positionBody: [],
-      nextRoute: 'left',
-      route: 'left'
-    })
-  }
+  let start = StartPosition[game.snakes.length]
+  game.snakes.push({
+    id,
+    level: 5,
+    positionHead: {
+      x: start.positionHead.x,
+      y: start.positionHead.y
+    },
+    positionBody: [],
+    // TODO: перезапись стартовой позиции тела
+    nextRoute: start.nextRoute,
+    route: start.route
+  })
   return id
 }
 

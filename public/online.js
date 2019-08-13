@@ -173,7 +173,7 @@ function drawHead (snake) {
     gameArea.cell, 
     gameArea.cell
   )
-  ctx.closePath()
+  ctx.closePath() 
 }
 
 function drawBody (snake) {

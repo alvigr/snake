@@ -25,8 +25,8 @@ app.get('/', (req, res) => {
 io.on('connection', client => {
   console.log('a user connected');
   client.on('exit', () => {
-    game.setDefaultParams()
     game.resetGame()
+    activeClients = activeClients.filter(obj => obj.client !== client)
   })
   client.on('setRoute', newRoute => {
     console.log('New route', newRoute.requestedRoute)
@@ -45,14 +45,12 @@ io.on('connection', client => {
   client.on('requestInvite', options => {
     console.log('request Invite')
     if (options.mode === Modes.SINGLE) {
-      game.setDefaultParams()
       game.resetGame()
       addPlayer(client)
       game.startNewGame()
     } else {
       waitingInvite.push(client)
       if (waitingInvite.length === 2) {
-        game.setDefaultParams()
         game.resetGame()
         while (waitingInvite.length > 0) {
           let waiting = waitingInvite.pop()
