@@ -9,12 +9,11 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  game.resetGame()
+  game.shutdown()
 })
 
 test('status playing after starting new game', () => {
   expect(game.getState().status).toBe('wait')
-  game.resetGame()
   game.addSnake()
   game.startNewGame()
   expect(game.getState().status).toBe('playing')
@@ -30,8 +29,8 @@ test('run parallel games', () => {
   game1.pauseOrResume()
   expect(game1.getState().status).toBe('paused')
   expect(game2.getState().status).toBe('playing')
-  game1.resetGame()
-  game2.resetGame()
+  game1.shutdown()
+  game2.shutdown()
 })
 
 test('snake is moving', () => {

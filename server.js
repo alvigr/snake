@@ -23,7 +23,7 @@ app.get('/', (req, res) => {
 io.on('connection', client => {
   console.log('a user connected', client.id);
   client.on('exit', () => {
-    getGame(client).resetGame()
+    getGame(client).shutdown()
     sessions = sessions.filter(obj => obj.client !== client)
   })
   client.on('setRoute', newRoute => {
@@ -65,7 +65,7 @@ io.on('connection', client => {
   client.on('disconnect', () => { 
     console.log('user closed connection')
     sessions = sessions.filter(obj => obj.client !== client)
-    getGame(client).resetGame()
+    getGame(client).shutdown()
    });
 });
 

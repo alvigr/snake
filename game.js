@@ -121,10 +121,6 @@ function createGame () {
     return state.snakes.findIndex(snake => snake.id === id)
   }
 
-  function setDefaultParams () {
-    state.snakes = []
-  }
-
   function startNewGame () {
     console.log('Start new game')
     setFood(state.snakes[0])
@@ -133,10 +129,9 @@ function createGame () {
     emitter.emit('game', {data: state, step: gameArea.cell})
   }
 
-  function resetGame () {
-    console.log('Reset game')
+  function shutdown () {
+    console.log('shutdown')
     clearInterval(timerId)
-    setDefaultParams()
     changeStatus(Statuses.WAIT)
   }
 
@@ -291,8 +286,7 @@ function createGame () {
   }
 
   return {
-    setDefaultParams,
-    resetGame,
+    shutdown,
     startNewGame,
     addSnake,
     getState,
