@@ -42,7 +42,7 @@ const StartPosition = [
   }
 ]
 
-let game = {
+let state = {
   status: Statuses.WAIT,
   speed: 170,
   snakes: [],
@@ -75,11 +75,11 @@ function off (eventName, listener) {
 }
 
 function changeStatus (status) {
-  game.status = status
+  state.status = status
 }
 
 function getState () {
-  return game
+  return state
 }
 
 function getArea () {
@@ -87,21 +87,21 @@ function getArea () {
 }
 
 function pauseOrResume () {
-  if (game.status === Statuses.PLAYING) {
+  if (state.status === Statuses.PLAYING) {
     console.log('Game paused')
     clearInterval(timerId)
     changeStatus(Statuses.PAUSED)
-  } else if (game.status === Statuses.PAUSED) {
+  } else if (state.status === Statuses.PAUSED) {
     console.log('Game resumed')
-    timerId = setInterval(playGame, game.speed)
+    timerId = setInterval(playGame, state.speed)
     changeStatus(Statuses.PLAYING)
   }
 }
 
 function addSnake () {
   let id = generateId()
-  let start = StartPosition[game.snakes.length]
-  game.snakes.push({
+  let start = StartPosition[state.snakes.length]
+  state.snakes.push({
     id,
     level: 5,
     positionHead: {
@@ -117,19 +117,19 @@ function addSnake () {
 }
 
 function findSnakeWithId (id) {
-  return game.snakes.findIndex(snake => snake.id === id)
+  return state.snakes.findIndex(snake => snake.id === id)
 }
 
 function setDefaultParams () {
-  game.snakes = []
+  state.snakes = []
 }
 
 function startNewGame () {
   console.log('Start new game')
-  setFood(game.snakes[0])
-  timerId = setInterval(playGame, game.speed)
+  setFood(state.snakes[0])
+  timerId = setInterval(playGame, state.speed)
   changeStatus(Statuses.PLAYING)
-  emitter.emit('game', {data: game, step: gameArea.cell})
+  emitter.emit('game', {data: state, step: gameArea.cell})
 }
 
 function resetGame () {
@@ -141,7 +141,7 @@ function resetGame () {
 
 function playGame () {
   if (finishGame()) {
-    game.snakes.forEach((snake) => {
+    state.snakes.forEach((snake) => {
       setRoute(snake)
       moveTail(snake)
       moveHead(snake)
@@ -150,11 +150,11 @@ function playGame () {
       moveBody(snake)
     })
   }
-  emitter.emit('game', {data: game, step: gameArea.cell})
+  emitter.emit('game', {data: state, step: gameArea.cell})
 }
 
 function setNextRoute (requestedRoute, id) {
-  let snake = game.snakes[findSnakeWithId(id)]
+  let snake = state.snakes[findSnakeWithId(id)]
   if (requestedRoute === Routes.UP && snake.route === Routes.DOWN) {
     return
   }
@@ -167,7 +167,7 @@ function setNextRoute (requestedRoute, id) {
   if (requestedRoute === Routes.LEFT && snake.route === Routes.RIGHT) {
     return
   }
-  if (game.status === Statuses.PLAYING) snake.nextRoute = requestedRoute
+  if (state.status === Statuses.PLAYING) snake.nextRoute = requestedRoute
 }
 
 function setRoute (snake) {
@@ -227,23 +227,23 @@ function setFood (snake) {
         return true
       }
     }) === -1
-    && posForFood.x !== game.food.position.x
-    && posForFood.y !== game.food.position.y
+    && posForFood.x !== state.food.position.x
+    && posForFood.y !== state.food.position.y
     ) {
-    game.food.position.x = posForFood.x
-    game.food.position.y = posForFood.y
+    state.food.position.x = posForFood.x
+    state.food.position.y = posForFood.y
   } else {
     setFood(snake)
   }
-  game.food.color = game.colorsSet[
-    randomInteger(0, game.colorsSet.length - 1)
+  state.food.color = state.colorsSet[
+    randomInteger(0, state.colorsSet.length - 1)
   ]
 }
 
 function eatFood (snake) {
   if (
-    snake.positionHead.x === game.food.position.x &
-    snake.positionHead.y === game.food.position.y
+    snake.positionHead.x === state.food.position.x &
+    snake.positionHead.y === state.food.position.y
     ) {
     snake.level++
     setFood(snake)
@@ -251,7 +251,7 @@ function eatFood (snake) {
 }
 
 function checkPlay (snake) {
-  game.snakes.forEach((bodysSnakes) => {
+  state.snakes.forEach((bodysSnakes) => {
     if (bodysSnakes.positionBody.find(
       function (element) {
         if (
@@ -268,7 +268,7 @@ function checkPlay (snake) {
 }
 
 function finishGame () {
-  if (game.status === Statuses.FINISHED) {
+  if (state.status === Statuses.FINISHED) {
     clearInterval(timerId)
     return false
   } else {
