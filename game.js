@@ -5,8 +5,6 @@ const gameArea = {
   cell: 20,
 }
 
-let timerId
-
 const Routes = { 
   UP: 'up', 
   DOWN: 'down', 
@@ -42,262 +40,268 @@ const StartPosition = [
   }
 ]
 
-let state = {
-  status: Statuses.WAIT,
-  speed: 170,
-  snakes: [],
-  food: {
-    position: {
-      x: 100,
-      y: 100
+function createGame () {
+  let timerId
+
+  let state = {
+    status: Statuses.WAIT,
+    speed: 170,
+    snakes: [],
+    food: {
+      position: {
+        x: 100,
+        y: 100
+      },
+      color: '',
     },
-    color: '',
-  },
-  colorsSet: [
-    '#EB5757', 
-    '#9B51E0', 
-    '#2F80ED', 
-    '#F2C94C', 
-    '#F2994A',
-    '#56CCF2',
-    '#D96BBA'
-  ],
-}
+    colorsSet: [
+      '#EB5757', 
+      '#9B51E0', 
+      '#2F80ED', 
+      '#F2C94C', 
+      '#F2994A',
+      '#56CCF2',
+      '#D96BBA'
+    ],
+  }
 
-let emitter = new EventEmitter()
+  let emitter = new EventEmitter()
 
-function on (eventName, listener) {
-  emitter.on(eventName, listener)
-}
+  function on (eventName, listener) {
+    emitter.on(eventName, listener)
+  }
 
-function off (eventName, listener) {
-  emitter.off(eventName, listener)
-}
+  function off (eventName, listener) {
+    emitter.off(eventName, listener)
+  }
 
-function changeStatus (status) {
-  state.status = status
-}
+  function changeStatus (status) {
+    state.status = status
+  }
 
-function getState () {
-  return state
-}
+  function getState () {
+    return state
+  }
 
-function getArea () {
-  return gameArea
-}
+  function getArea () {
+    return gameArea
+  }
 
-function pauseOrResume () {
-  if (state.status === Statuses.PLAYING) {
-    console.log('Game paused')
-    clearInterval(timerId)
-    changeStatus(Statuses.PAUSED)
-  } else if (state.status === Statuses.PAUSED) {
-    console.log('Game resumed')
+  function pauseOrResume () {
+    if (state.status === Statuses.PLAYING) {
+      console.log('Game paused')
+      clearInterval(timerId)
+      changeStatus(Statuses.PAUSED)
+    } else if (state.status === Statuses.PAUSED) {
+      console.log('Game resumed')
+      timerId = setInterval(playGame, state.speed)
+      changeStatus(Statuses.PLAYING)
+    }
+  }
+
+  function addSnake () {
+    let id = generateId()
+    let start = StartPosition[state.snakes.length]
+    state.snakes.push({
+      id,
+      level: 5,
+      positionHead: {
+        x: start.positionHead.x,
+        y: start.positionHead.y
+      },
+      positionBody: [],
+      // TODO: перезапись стартовой позиции тела
+      nextRoute: start.nextRoute,
+      route: start.route
+    })
+    return id
+  }
+
+  function findSnakeWithId (id) {
+    return state.snakes.findIndex(snake => snake.id === id)
+  }
+
+  function setDefaultParams () {
+    state.snakes = []
+  }
+
+  function startNewGame () {
+    console.log('Start new game')
+    setFood(state.snakes[0])
     timerId = setInterval(playGame, state.speed)
     changeStatus(Statuses.PLAYING)
+    emitter.emit('game', {data: state, step: gameArea.cell})
   }
-}
 
-function addSnake () {
-  let id = generateId()
-  let start = StartPosition[state.snakes.length]
-  state.snakes.push({
-    id,
-    level: 5,
-    positionHead: {
-      x: start.positionHead.x,
-      y: start.positionHead.y
-    },
-    positionBody: [],
-    // TODO: перезапись стартовой позиции тела
-    nextRoute: start.nextRoute,
-    route: start.route
-  })
-  return id
-}
-
-function findSnakeWithId (id) {
-  return state.snakes.findIndex(snake => snake.id === id)
-}
-
-function setDefaultParams () {
-  state.snakes = []
-}
-
-function startNewGame () {
-  console.log('Start new game')
-  setFood(state.snakes[0])
-  timerId = setInterval(playGame, state.speed)
-  changeStatus(Statuses.PLAYING)
-  emitter.emit('game', {data: state, step: gameArea.cell})
-}
-
-function resetGame () {
-  console.log('Reset game')
-  clearInterval(timerId)
-  setDefaultParams()
-  changeStatus(Statuses.WAIT)
-}
-
-function playGame () {
-  if (finishGame()) {
-    state.snakes.forEach((snake) => {
-      setRoute(snake)
-      moveTail(snake)
-      moveHead(snake)
-      eatFood(snake)
-      checkPlay(snake)
-      moveBody(snake)
-    })
+  function resetGame () {
+    console.log('Reset game')
+    clearInterval(timerId)
+    setDefaultParams()
+    changeStatus(Statuses.WAIT)
   }
-  emitter.emit('game', {data: state, step: gameArea.cell})
-}
 
-function setNextRoute (requestedRoute, id) {
-  let snake = state.snakes[findSnakeWithId(id)]
-  if (requestedRoute === Routes.UP && snake.route === Routes.DOWN) {
-    return
-  }
-  if (requestedRoute === Routes.DOWN && snake.route === Routes.UP) {
-    return
-  }
-  if (requestedRoute === Routes.RIGHT && snake.route === Routes.LEFT) {
-    return
-  }
-  if (requestedRoute === Routes.LEFT && snake.route === Routes.RIGHT) {
-    return
-  }
-  if (state.status === Statuses.PLAYING) snake.nextRoute = requestedRoute
-}
-
-function setRoute (snake) {
-  snake.route = snake.nextRoute
-}
-
-function moveHead (snake) {
-  if (snake.route === 'right') {
-    snake.positionHead.x += gameArea.cell
-    if (snake.positionHead.x >= gameArea.width) {
-      snake.positionHead.x = 0
+  function playGame () {
+    if (finishGame()) {
+      state.snakes.forEach((snake) => {
+        setRoute(snake)
+        moveTail(snake)
+        moveHead(snake)
+        eatFood(snake)
+        checkPlay(snake)
+        moveBody(snake)
+      })
     }
+    emitter.emit('game', {data: state, step: gameArea.cell})
   }
-  if (snake.route === 'left') {
-    snake.positionHead.x -= gameArea.cell
-    if (snake.positionHead.x < 0) {
-      snake.positionHead.x = gameArea.width - gameArea.cell
-    }
-  }
-  if (snake.route === 'up') {
-    snake.positionHead.y -= gameArea.cell
-    if (snake.positionHead.y < 0) {
-      snake.positionHead.y = gameArea.height - gameArea.cell
-    }
-  }
-  if (snake.route === 'down') {
-    snake.positionHead.y += gameArea.cell
-    if (snake.positionHead.y >= gameArea.height) {
-      snake.positionHead.y = 0
-    }
-  }
-}
 
-function randomInteger (min, max) {
-  let rand = min + Math.random() * (max + 1 - min);
-  rand = Math.floor(rand);
-  return rand;
-}
-
-function generateId () {
-  const symbols = 'qwertyuiopasdfghjklzxcvbnm1234567890'
-  let id = ''
-  for (let i = 0; i < 6; i++) {
-    id += symbols[randomInteger(0, symbols.length - 1)]
+  function setNextRoute (requestedRoute, id) {
+    let snake = state.snakes[findSnakeWithId(id)]
+    if (requestedRoute === Routes.UP && snake.route === Routes.DOWN) {
+      return
+    }
+    if (requestedRoute === Routes.DOWN && snake.route === Routes.UP) {
+      return
+    }
+    if (requestedRoute === Routes.RIGHT && snake.route === Routes.LEFT) {
+      return
+    }
+    if (requestedRoute === Routes.LEFT && snake.route === Routes.RIGHT) {
+      return
+    }
+    if (state.status === Statuses.PLAYING) snake.nextRoute = requestedRoute
   }
-  return id
-}
 
-function setFood (snake) {
-  let posForFood = {
-    x: randomInteger(0, (gameArea.width - gameArea.cell) / gameArea.cell) * gameArea.cell, 
-    y: randomInteger(0, (gameArea.height - gameArea.cell) / gameArea.cell) * gameArea.cell
+  function setRoute (snake) {
+    snake.route = snake.nextRoute
   }
-  if (
-    snake.positionBody.findIndex(function (element) {
-      if (element.x === posForFood.x && element.y === posForFood.y) {
-        return true
+
+  function moveHead (snake) {
+    if (snake.route === 'right') {
+      snake.positionHead.x += gameArea.cell
+      if (snake.positionHead.x >= gameArea.width) {
+        snake.positionHead.x = 0
       }
-    }) === -1
-    && posForFood.x !== state.food.position.x
-    && posForFood.y !== state.food.position.y
-    ) {
-    state.food.position.x = posForFood.x
-    state.food.position.y = posForFood.y
-  } else {
-    setFood(snake)
+    }
+    if (snake.route === 'left') {
+      snake.positionHead.x -= gameArea.cell
+      if (snake.positionHead.x < 0) {
+        snake.positionHead.x = gameArea.width - gameArea.cell
+      }
+    }
+    if (snake.route === 'up') {
+      snake.positionHead.y -= gameArea.cell
+      if (snake.positionHead.y < 0) {
+        snake.positionHead.y = gameArea.height - gameArea.cell
+      }
+    }
+    if (snake.route === 'down') {
+      snake.positionHead.y += gameArea.cell
+      if (snake.positionHead.y >= gameArea.height) {
+        snake.positionHead.y = 0
+      }
+    }
   }
-  state.food.color = state.colorsSet[
-    randomInteger(0, state.colorsSet.length - 1)
-  ]
-}
 
-function eatFood (snake) {
-  if (
-    snake.positionHead.x === state.food.position.x &
-    snake.positionHead.y === state.food.position.y
-    ) {
-    snake.level++
-    setFood(snake)
+  function randomInteger (min, max) {
+    let rand = min + Math.random() * (max + 1 - min);
+    rand = Math.floor(rand);
+    return rand;
   }
-}
 
-function checkPlay (snake) {
-  state.snakes.forEach((bodysSnakes) => {
-    if (bodysSnakes.positionBody.find(
-      function (element) {
-        if (
-          element.x === snake.positionHead.x
-          && element.y === snake.positionHead.y
-          ) {
+  function generateId () {
+    const symbols = 'qwertyuiopasdfghjklzxcvbnm1234567890'
+    let id = ''
+    for (let i = 0; i < 6; i++) {
+      id += symbols[randomInteger(0, symbols.length - 1)]
+    }
+    return id
+  }
+
+  function setFood (snake) {
+    let posForFood = {
+      x: randomInteger(0, (gameArea.width - gameArea.cell) / gameArea.cell) * gameArea.cell, 
+      y: randomInteger(0, (gameArea.height - gameArea.cell) / gameArea.cell) * gameArea.cell
+    }
+    if (
+      snake.positionBody.findIndex(function (element) {
+        if (element.x === posForFood.x && element.y === posForFood.y) {
           return true
         }
-      }
-    )) {
-      changeStatus(Statuses.FINISHED)
+      }) === -1
+      && posForFood.x !== state.food.position.x
+      && posForFood.y !== state.food.position.y
+      ) {
+      state.food.position.x = posForFood.x
+      state.food.position.y = posForFood.y
+    } else {
+      setFood(snake)
     }
-  })
-}
+    state.food.color = state.colorsSet[
+      randomInteger(0, state.colorsSet.length - 1)
+    ]
+  }
 
-function finishGame () {
-  if (state.status === Statuses.FINISHED) {
-    clearInterval(timerId)
-    return false
-  } else {
-    return true
+  function eatFood (snake) {
+    if (
+      snake.positionHead.x === state.food.position.x &
+      snake.positionHead.y === state.food.position.y
+      ) {
+      snake.level++
+      setFood(snake)
+    }
+  }
+
+  function checkPlay (snake) {
+    state.snakes.forEach((bodysSnakes) => {
+      if (bodysSnakes.positionBody.find(
+        function (element) {
+          if (
+            element.x === snake.positionHead.x
+            && element.y === snake.positionHead.y
+            ) {
+            return true
+          }
+        }
+      )) {
+        changeStatus(Statuses.FINISHED)
+      }
+    })
+  }
+
+  function finishGame () {
+    if (state.status === Statuses.FINISHED) {
+      clearInterval(timerId)
+      return false
+    } else {
+      return true
+    }
+  }
+
+  function moveBody (snake) {
+    snake.positionBody.push({
+      x: snake.positionHead.x, 
+      y: snake.positionHead.y
+    })
+  }
+
+  function moveTail (snake) {
+    while (snake.positionBody.length >= snake.level) {
+      snake.positionBody.shift()
+    }
+  }
+
+  return {
+    setDefaultParams,
+    resetGame,
+    startNewGame,
+    addSnake,
+    getState,
+    getArea,
+    pauseOrResume,
+    setNextRoute,
+    on,
+    off
   }
 }
 
-function moveBody (snake) {
-  snake.positionBody.push({
-    x: snake.positionHead.x, 
-    y: snake.positionHead.y
-  })
-}
-
-function moveTail (snake) {
-  while (snake.positionBody.length >= snake.level) {
-    snake.positionBody.shift()
-  }
-}
-
-module.exports = {
-  setDefaultParams,
-  resetGame,
-  startNewGame,
-  addSnake,
-  getState,
-  getArea,
-  pauseOrResume,
-  setNextRoute,
-  on,
-  off
-}
+module.exports = createGame

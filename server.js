@@ -2,7 +2,7 @@ const express = require('express')
 const app = express();
 const server = require('http').createServer(app);
 const io = require('socket.io')(server);
-const game = require('./game')
+const createGame = require('./game')
 
 const Modes = {
   SINGLE: 'single',
@@ -11,9 +11,7 @@ const Modes = {
 
 const waitingInvite = []
 
-let activeClients = []
-
-game.on('game', onChangeGame)
+let sessions = []
 
 app.use(express.static('public'));
 
@@ -23,38 +21,38 @@ app.get('/', (req, res) => {
 });
 
 io.on('connection', client => {
-  console.log('a user connected');
+  console.log('a user connected', client.id);
   client.on('exit', () => {
-    game.resetGame()
-    activeClients = activeClients.filter(obj => obj.client !== client)
+    getGame(client).resetGame()
+    sessions = sessions.filter(obj => obj.client !== client)
   })
   client.on('setRoute', newRoute => {
     console.log('New route', newRoute.requestedRoute)
-    game.setNextRoute(newRoute.requestedRoute, newRoute.snakeId)
+    getGame(client).setNextRoute(newRoute.requestedRoute, newRoute.snakeId)
   })
   client.on('paused', () => {
-    game.pauseOrResume()
+    getGame(client).pauseOrResume()
     console.log('Game paused to client')
-    emitStateAll('stream')
+    emitStateAll('stream', getGame(client))
   })
   client.on('resumed', () => {
-    game.pauseOrResume()
+    getGame(client).pauseOrResume()
     console.log('Game resumed to client')
-    emitStateAll('stream')
+    emitStateAll('stream', getGame(client))
   })
   client.on('requestInvite', options => {
     console.log('request Invite')
     if (options.mode === Modes.SINGLE) {
-      game.resetGame()
-      addPlayer(client)
+      const game = createGame()
+      addPlayer(game, client)
       game.startNewGame()
     } else {
       waitingInvite.push(client)
       if (waitingInvite.length === 2) {
-        game.resetGame()
+        const game = createGame()
         while (waitingInvite.length > 0) {
           let waiting = waitingInvite.pop()
-          addPlayer(waiting)
+          addPlayer(game, waiting)
         }
         game.startNewGame()
       }
@@ -62,12 +60,12 @@ io.on('connection', client => {
   })
   client.on('finished', () => {
     console.log('Finish Game')
-    activeClients = activeClients.filter(obj => obj.client !== client)
+    sessions = sessions.filter(obj => obj.client !== client)
   })
   client.on('disconnect', () => { 
     console.log('user closed connection')
-    activeClients = activeClients.filter(obj => obj.client !== client)
-    game.resetGame()
+    sessions = sessions.filter(obj => obj.client !== client)
+    getGame(client).resetGame()
    });
 });
 
@@ -75,24 +73,36 @@ server.listen(3000, () => {
   console.log('listening on *:3000');
 });
 
-function addPlayer (player) {
+function addPlayer (game, player) {
   let id = game.addSnake()
-  activeClients.push({id, client: player})
+  sessions.push({id, client: player, game})
+  game.on('game', () => {
+    player.emit('stream', getState(player))
+  })
   player.emit('invite', getState(player))
   console.log('Send invite', id)
 }
 
-function onChangeGame () {
-  emitStateAll('stream')
+function getSession (client) {
+  const session = sessions.filter(session => session.client === client)[0]
+  if (session === undefined) {
+    throw new Error(`Не найдена сессия для клиента ${client.id}`)
+  }
+  return session
 }
+
+function getGame (client) {
+  return getSession(client).game
+} 
 
 function getState (client) {
-  let id = activeClients.filter(obj => obj.client === client)[0].id
-  return {data: game.getState(), gameArea: game.getArea(), id}
+  const session = getSession(client)
+  const game = session.game
+  return {data: game.getState(), gameArea: game.getArea(), id: session.id}
 }
 
-function emitStateAll (event) {
-  activeClients.forEach((activeClient) => {
-    activeClient.client.emit(event, getState(activeClient.client))
+function emitStateAll (event, game) {
+  sessions.filter(session => session.game === game).forEach((session) => {
+    session.client.emit(event, getState(session.client))
   })
 }

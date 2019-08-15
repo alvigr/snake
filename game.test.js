@@ -1,6 +1,12 @@
-const game = require('./game')
+const createGame = require('./game')
+
+let game 
 
 jest.useFakeTimers()
+
+beforeEach(() => {
+  game = createGame()
+})
 
 afterEach(() => {
   game.resetGame()
@@ -12,6 +18,20 @@ test('status playing after starting new game', () => {
   game.addSnake()
   game.startNewGame()
   expect(game.getState().status).toBe('playing')
+})
+
+test('run parallel games', () => {
+  const game1 = createGame()
+  const game2 = createGame()
+  game1.addSnake()
+  game2.addSnake()
+  game1.startNewGame()
+  game2.startNewGame()
+  game1.pauseOrResume()
+  expect(game1.getState().status).toBe('paused')
+  expect(game2.getState().status).toBe('playing')
+  game1.resetGame()
+  game2.resetGame()
 })
 
 test('snake is moving', () => {
