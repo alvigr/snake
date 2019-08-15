@@ -64,9 +64,11 @@ io.on('connection', client => {
   })
   client.on('disconnect', () => { 
     console.log('user closed connection')
-    sessions = sessions.filter(obj => obj.client !== client)
-    getGame(client).shutdown()
-   });
+    if (hasSession(client)) {
+      getGame(client).shutdown()
+      sessions = sessions.filter(obj => obj.client !== client)
+    }
+   })
 });
 
 server.listen(3000, () => {
@@ -89,6 +91,10 @@ function getSession (client) {
     throw new Error(`Не найдена сессия для клиента ${client.id}`)
   }
   return session
+}
+
+function hasSession (client) {
+  return sessions.filter(session => session.client === client).length === 1
 }
 
 function getGame (client) {
