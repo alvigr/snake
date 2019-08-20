@@ -32,7 +32,7 @@ let game
 let gameArea
 let snakeId
 
-const socket = io('http://localhost:3000')
+const socket = io(window.location.origin)
 
 socket.on('connect', function() {
   console.log('Connected to server')
