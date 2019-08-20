@@ -180,7 +180,7 @@ function drawBody (snake) {
   snake.positionBody.forEach((section) => {
     if (section.x === snake.bend.position.x && section.y === snake.bend.position.y) {
       ctx.beginPath()
-      ctx.fillStyle = '#77C883'
+      ctx.fillStyle = snake.color
       ctx.fillRect(
         section.x, 
         section.y, 
@@ -190,7 +190,7 @@ function drawBody (snake) {
       ctx.closePath()
     } else {
       ctx.beginPath()
-      ctx.fillStyle = '#77C883'
+      ctx.fillStyle = snake.color
       ctx.fillRect(
         section.x, 
         section.y, 

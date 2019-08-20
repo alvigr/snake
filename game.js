@@ -19,6 +19,13 @@ const Statuses = {
   FINISHED: 'finished'
 }
 
+const SnakeColors = [
+  '#26A69A', 
+  '#7E57C2', 
+  '#42A5F5', 
+  '#66BB6A'
+]
+
 const StartPosition = [
   {
     positionHead: {
@@ -114,9 +121,14 @@ function createGame () {
       nextRoute: start.nextRoute,
       route: start.route,
       //TODO: запоминать положения поворотов для реализации скругленных углов
-      bend: {route: 'RD', position: {x: null, y: null}}
+      bend: {route: 'RD', position: {x: null, y: null}},
+      color: nextColor()
     })
     return id
+  }
+
+  function nextColor () {
+    return SnakeColors[state.snakes.length % SnakeColors.length]
   }
 
   function findSnakeWithId (id) {
