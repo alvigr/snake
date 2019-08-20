@@ -112,7 +112,9 @@ function createGame () {
       positionBody: [],
       // TODO: перезапись стартовой позиции тела
       nextRoute: start.nextRoute,
-      route: start.route
+      route: start.route,
+      //TODO: запоминать положения поворотов для реализации скругленных углов
+      bend: {route: 'RD', position: {x: null, y: null}}
     })
     return id
   }

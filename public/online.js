@@ -166,7 +166,7 @@ function draw () {
 
 function drawHead (snake) {
   ctx.beginPath()
-  ctx.fillStyle = game.status === 'finished' ? '#D73333' : '#366A5D'
+  ctx.fillStyle = game.status === 'finished' ? '#D73333' : '#589461'
   ctx.fillRect(
     snake.positionHead.x, 
     snake.positionHead.y, 
@@ -177,19 +177,29 @@ function drawHead (snake) {
 }
 
 function drawBody (snake) {
-  if (snake.positionBody.length >= 1) {
-    for (let i = 0; i < snake.positionBody.length; i++) {
+  snake.positionBody.forEach((section) => {
+    if (section.x === snake.bend.position.x && section.y === snake.bend.position.y) {
       ctx.beginPath()
-      ctx.fillStyle = '#63A794'
+      ctx.fillStyle = '#77C883'
       ctx.fillRect(
-        snake.positionBody[i].x, 
-        snake.positionBody[i].y, 
+        section.x, 
+        section.y, 
+        gameArea.cell, 
+        gameArea.cell
+      )
+      ctx.closePath()
+    } else {
+      ctx.beginPath()
+      ctx.fillStyle = '#77C883'
+      ctx.fillRect(
+        section.x, 
+        section.y, 
         gameArea.cell, 
         gameArea.cell
       )
       ctx.closePath()
     }
-  } 
+  })
 }
 
 function drawFood () {
