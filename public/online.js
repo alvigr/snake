@@ -77,6 +77,10 @@ function hideBlock (selector) {
   document.getElementById(selector).style.display = "none"
 }
 
+let imageHead
+let imageBody
+let imageTail
+
 function init () {
   canvas = document.getElementById('canvas')
   ctx = canvas.getContext('2d')
@@ -86,6 +90,15 @@ function init () {
   document.getElementById('multiPlayer').addEventListener('click', () => {connectToGame(Modes.MULTI)})
   //document.getElementById('restart').addEventListener('click', newGame)
   document.getElementById('exit').addEventListener('click', exit)
+
+  imageHead = new Image()
+  imageHead.src = './snakehead.png'
+
+  imageBody = new Image()
+  imageBody.src = './snakebody.png'
+
+  imageTail = new Image()
+  imageTail.src = './snaketail.png'
 }
 
 function connectToGame (mode) {
@@ -165,6 +178,9 @@ function draw () {
 }
 
 function drawHead (snake) {
+  ctx.clearRect(snake.positionHead.x, 
+    snake.positionHead.y,  gameArea.cell, gameArea.cell)
+  //ctx.save();
   ctx.beginPath()
   ctx.fillStyle = game.status === 'finished' ? '#D73333' : '#589461'
   ctx.fillRect(
@@ -174,6 +190,7 @@ function drawHead (snake) {
     gameArea.cell
   )
   ctx.closePath() 
+  //ctx.restore();
 }
 
 function drawBody (snake) {
@@ -195,8 +212,7 @@ function drawBody (snake) {
         section.x, 
         section.y, 
         gameArea.cell, 
-        gameArea.cell
-      )
+        gameArea.cell)
       ctx.closePath()
     }
   })
