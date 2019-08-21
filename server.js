@@ -33,6 +33,7 @@ io.on('connection', client => {
     getGame(client).setNextRoute(newRoute.requestedRoute, newRoute.snakeId)
   })
   client.on('paused', () => {
+    testBugreport()
     getGame(client).pauseOrResume()
     console.log('Game paused to client')
     emitStateAll('stream', getGame(client))
