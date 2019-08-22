@@ -20,8 +20,8 @@ const Statuses = {
 }
 
 const SnakeColors = [
-  '#26A69A', 
-  '#7E57C2', 
+  '#77C883', 
+  '#60BBC0', 
   '#42A5F5', 
   '#66BB6A'
 ]
