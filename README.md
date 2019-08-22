@@ -3,6 +3,7 @@ Online multipleer legendary game.
 
 <h2>Demo</h2>
 An online demo is available <a href="https://megasnake.herokuapp.com/">here</a>.
+To multiplayer game needs two gamer, whos clicked on button «Multi player».
 
 <h2>Production</h2>
 To start the application in the production server run:<br>
