@@ -15,6 +15,12 @@ p {
   margin: 0;
 }
 
+button, 
+button:active, 
+button:focus {
+    outline: none;
+}
+
 .menu {
   /* background-image: url(snakebg.jpg); */
   background-position-x: center;
@@ -75,6 +81,34 @@ p {
   font-size: 14px;
   margin-left: 8px;
   border-radius: 50px;
+  padding: 0;
+}
+
+.pause {
+  width: 32px;
+  height: 32px;
+  background-color: #5DBEC4;
+  display: inline-block;
+    -webkit-mask-image: url(./pause.svg);
+    mask-image: url(./pause.svg);
+}
+
+.play {
+  width: 32px;
+  height: 32px;
+  background-color: #77C883;
+  display: inline-block;
+    -webkit-mask-image: url(./play.svg);
+    mask-image: url(./play.svg);
+}
+
+.exit {
+  width: 32px;
+  height: 32px;
+  background-color: #F17482;
+  display: inline-block;
+    -webkit-mask-image: url(./exit.svg);
+    mask-image: url(./exit.svg);
 }
 
 .score {

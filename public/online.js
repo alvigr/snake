@@ -53,7 +53,7 @@ socket.on('stream', function (data) {
   }
   console.log(data.id, snakeId)
   document.getElementById('score').innerText = mySnake().level
-  document.getElementById('textOnPause').innerText = game.status === 'paused' ? 'Resume' : 'Pause'
+  document.getElementById('ico-pause').className = game.status === 'paused' ? 'play' : 'pause'
 })
 
 socket.on('disconnect', function () {
@@ -98,7 +98,7 @@ function init () {
   imageBody.src = './snakebody.png'
 
   imageTail = new Image()
-  imageTail.src = './snaketail.png'
+  imageTail.src = './snaketale.png'
 }
 
 function connectToGame (mode) {
@@ -111,7 +111,7 @@ function connectToGame (mode) {
     console.log(data)
     console.log('invite получен', game.status)
     document.getElementById('score').innerText = mySnake().level
-    document.getElementById('textOnPause').innerText = game.status === 'paused' ? 'Resume' : 'Pause'
+    document.getElementById('ico-pause').className = game.status === 'paused' ? 'play' : 'pause'
     hideBlock('waiting')
     showBlock('gameplay')
     startNewGame()
