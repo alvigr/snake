@@ -5,7 +5,7 @@ Online multipleer legendary game.
 An online demo is available <a href="https://megasnake.herokuapp.com/">here</a>.
 
 <h2>Production</h2>
-To start the application in the production server run:
+To start the application in the production server run:<br>
 <code>yarn start</code>
 
 <h2>Development</h2>
